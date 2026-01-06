@@ -47,11 +47,13 @@ public class PacientesController : Controller
     }
 
     // GET: /Pacientes/HistoriaClinica/5
-    public async Task<IActionResult> HistoriaClinica(int id)
+    public async Task<IActionResult> HistoriaClinica(
+        int id,
+        DateTime? fechaDesde,
+        DateTime? fechaHasta,
+        int? medicoId)
     {
         var paciente = await _context.Pacientes
-            .Include(p => p.Consultas)
-                .ThenInclude(c => c.Medico)
             .FirstOrDefaultAsync(p => p.PacienteId == id);
 
         if (paciente == null)
@@ -59,25 +61,64 @@ public class PacientesController : Controller
             return NotFound();
         }
 
-        var consultas = paciente.Consultas
-            .OrderByDescending(c => c.FechaConsulta)
-            .ToList();
+        var query = _context.ConsultasMedicas
+            .Include(c => c.Medico)
+            .Include(c => c.Diagnosticos)
+            .Include(c => c.Recetas)
+            .Where(c => c.PacienteId == id)
+            .AsQueryable();
 
-        var vm = new HistoriaClinicaViewModel
+        if (fechaDesde.HasValue)
+        {
+            var desde = fechaDesde.Value.Date;
+            query = query.Where(c => c.FechaConsulta.Date >= desde);
+        }
+
+        if (fechaHasta.HasValue)
+        {
+            var hasta = fechaHasta.Value.Date;
+            query = query.Where(c => c.FechaConsulta.Date <= hasta);
+        }
+
+        if (medicoId.HasValue)
+        {
+            query = query.Where(c => c.MedicoId == medicoId.Value);
+        }
+
+        var consultas = await query
+            .OrderByDescending(c => c.FechaConsulta)
+            .ToListAsync();
+
+        var medicos = await _context.Medicos
+            .OrderBy(m => m.Apellido)
+            .ThenBy(m => m.Nombre)
+            .ToListAsync();
+
+        var vm = new HistoriaClinicaFiltroViewModel
         {
             Paciente = paciente,
-            Consultas = consultas
+            Consultas = consultas,
+            FechaDesde = fechaDesde,
+            FechaHasta = fechaHasta,
+            MedicoId = medicoId,
+            Medicos = medicos.Select(m => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = m.MedicoId.ToString(),
+                Text = $"{m.Apellido} {m.Nombre}"
+            })
         };
 
         return View(vm);
     }
 
     // GET: /Pacientes/HistoriaClinicaPdf/5
-    public async Task<IActionResult> HistoriaClinicaPdf(int id)
+    public async Task<IActionResult> HistoriaClinicaPdf(
+        int id,
+        DateTime? fechaDesde,
+        DateTime? fechaHasta,
+        int? medicoId)
     {
         var paciente = await _context.Pacientes
-            .Include(p => p.Consultas)
-                .ThenInclude(c => c.Medico)
             .FirstOrDefaultAsync(p => p.PacienteId == id);
 
         if (paciente == null)
@@ -85,9 +126,33 @@ public class PacientesController : Controller
             return NotFound();
         }
 
-        var consultas = paciente.Consultas
+        var query = _context.ConsultasMedicas
+            .Include(c => c.Medico)
+            .Include(c => c.Diagnosticos)
+            .Include(c => c.Recetas)
+            .Where(c => c.PacienteId == id)
+            .AsQueryable();
+
+        if (fechaDesde.HasValue)
+        {
+            var desde = fechaDesde.Value.Date;
+            query = query.Where(c => c.FechaConsulta.Date >= desde);
+        }
+
+        if (fechaHasta.HasValue)
+        {
+            var hasta = fechaHasta.Value.Date;
+            query = query.Where(c => c.FechaConsulta.Date <= hasta);
+        }
+
+        if (medicoId.HasValue)
+        {
+            query = query.Where(c => c.MedicoId == medicoId.Value);
+        }
+
+        var consultas = await query
             .OrderBy(c => c.FechaConsulta)
-            .ToList();
+            .ToListAsync();
 
         var pdfBytes = Clinica.Web.Services.HistoriaClinicaPdfService.GenerarHistoriaClinicaPdf(paciente, consultas);
         var fileName = $"HistoriaClinica_{paciente.Apellido}_{paciente.Nombre}.pdf";

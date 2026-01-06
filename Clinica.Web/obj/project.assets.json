@@ -3008,23 +3008,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\cotom\\.nuget\\packages\\": {},
+    "C:\\Users\\Agustin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Web\\Clinica.Web.csproj",
+      "projectUniqueName": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Clinica.Web.csproj",
       "projectName": "Clinica.Web",
-      "projectPath": "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Web\\Clinica.Web.csproj",
-      "packagesPath": "C:\\Users\\cotom\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Web\\obj\\",
+      "projectPath": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Clinica.Web.csproj",
+      "packagesPath": "C:\\Users\\Agustin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\cotom\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Agustin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3039,11 +3039,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Domain\\Clinica.Domain.csproj": {
-              "projectPath": "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Domain\\Clinica.Domain.csproj"
+            "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Domain\\Clinica.Domain.csproj": {
+              "projectPath": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Domain\\Clinica.Domain.csproj"
             },
-            "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Infrastructure\\Clinica.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\cotom\\Documents\\Proyecto\\Clinica.Infrastructure\\Clinica.Infrastructure.csproj"
+            "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Infrastructure\\Clinica.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Infrastructure\\Clinica.Infrastructure.csproj"
             }
           }
         }
@@ -3092,7 +3092,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -1,4 +1,4 @@
-@model Clinica.Web.Models.HistoriaClinicaViewModel
+@model Clinica.Web.Models.HistoriaClinicaFiltroViewModel
 
 @{
     ViewData["Title"] = "Historia clínica";
@@ -11,13 +11,40 @@
     <strong>Documento:</strong> @Model.Paciente.TipoDocumento @Model.Paciente.NumeroDocumento<br />
 </p>
 
+<form asp-action="HistoriaClinica" method="get" class="row g-3 mb-3">
+    <input type="hidden" name="id" value="@Model.Paciente.PacienteId" />
+    <div class="col-md-3">
+        <label asp-for="FechaDesde" class="form-label"></label>
+        <input asp-for="FechaDesde" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="FechaHasta" class="form-label"></label>
+        <input asp-for="FechaHasta" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="MedicoId" class="form-label"></label>
+        <select asp-for="MedicoId" asp-items="Model.Medicos" class="form-select">
+            <option value="">-- Todos --</option>
+        </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+        <a asp-action="HistoriaClinica" asp-route-id="@Model.Paciente.PacienteId" class="btn btn-outline-secondary">Limpiar</a>
+    </div>
+</form>
+
 <p>
-    <a asp-action="HistoriaClinicaPdf" asp-route-id="@Model.Paciente.PacienteId" class="btn btn-sm btn-outline-primary">Exportar a PDF</a>
+    <a asp-action="HistoriaClinicaPdf"
+       asp-route-id="@Model.Paciente.PacienteId"
+       asp-route-fechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+       asp-route-fechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")"
+       asp-route-medicoId="@Model.MedicoId"
+       class="btn btn-sm btn-outline-primary">Exportar a PDF</a>
 </p>
 
 @if (!Model.Consultas.Any())
 {
-    <p>No hay consultas registradas para este paciente.</p>
+    <p>No hay consultas registradas para este paciente con los filtros seleccionados.</p>
 }
 else
 {

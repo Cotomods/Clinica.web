@@ -1,4 +1,4 @@
-@model Clinica.Domain.Entities.Medico
+@model Clinica.Web.Models.MedicoCreateViewModel
 
 @{
     ViewData["Title"] = "Nuevo médico";
@@ -21,6 +21,11 @@
         <label asp-for="Matricula" class="form-label"></label>
         <input asp-for="Matricula" class="form-control" />
         <span asp-validation-for="Matricula" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="EspecialidadNombre" class="form-label"></label>
+        <input asp-for="EspecialidadNombre" class="form-control" />
+        <span asp-validation-for="EspecialidadNombre" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>

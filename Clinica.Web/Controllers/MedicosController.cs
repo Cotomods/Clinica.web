@@ -18,24 +18,52 @@ public class MedicosController : Controller
     // GET: /Medicos
     public async Task<IActionResult> Index()
     {
-        var medicos = await _context.Medicos.AsNoTracking().ToListAsync();
+        var medicos = await _context.Medicos
+            .Include(m => m.Especialidad)
+            .AsNoTracking()
+            .ToListAsync();
         return View(medicos);
     }
 
     // GET: /Medicos/Create
     public IActionResult Create()
     {
-        return View();
+        return View(new MedicoCreateViewModel());
     }
 
     // POST: /Medicos/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Medico medico)
+    public async Task<IActionResult> Create(MedicoCreateViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return View(medico);
+            return View(model);
+        }
+
+        Especialidad? especialidad = null;
+        if (!string.IsNullOrWhiteSpace(model.EspecialidadNombre))
+        {
+            especialidad = await _context.Especialidades
+                .FirstOrDefaultAsync(e => e.Nombre == model.EspecialidadNombre);
+
+            if (especialidad == null)
+            {
+                especialidad = new Especialidad { Nombre = model.EspecialidadNombre };
+                _context.Especialidades.Add(especialidad);
+            }
+        }
+
+        var medico = new Medico
+        {
+            Nombre = model.Nombre,
+            Apellido = model.Apellido,
+            Matricula = model.Matricula
+        };
+
+        if (especialidad != null)
+        {
+            medico.Especialidad = especialidad;
         }
 
         _context.Medicos.Add(medico);

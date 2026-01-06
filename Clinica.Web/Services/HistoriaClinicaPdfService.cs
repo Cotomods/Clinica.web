@@ -69,6 +69,46 @@ public static class HistoriaClinicaPdfService
                             col.Item().Text(c.Indicaciones).FontSize(10);
                         }
 
+                        if (c.Diagnosticos != null && c.Diagnosticos.Any())
+                        {
+                            col.Item().Text("Diagnósticos:").SemiBold();
+                            foreach (var d in c.Diagnosticos)
+                            {
+                                col.Item().Text(text =>
+                                {
+                                    if (!string.IsNullOrWhiteSpace(d.Codigo))
+                                    {
+                                        text.Span($"[{d.Codigo}] ").SemiBold().FontSize(10);
+                                    }
+                                    text.Span(d.Descripcion).FontSize(10);
+                                });
+                            }
+                        }
+
+                        if (c.Recetas != null && c.Recetas.Any())
+                        {
+                            col.Item().Text("Recetas:").SemiBold();
+                            foreach (var r in c.Recetas)
+                            {
+                                col.Item().Text(text =>
+                                {
+                                    text.Span(r.Medicamento).SemiBold().FontSize(10);
+                                    if (!string.IsNullOrWhiteSpace(r.Dosis))
+                                    {
+                                        text.Span($" - Dosis: {r.Dosis}").FontSize(10);
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(r.Frecuencia))
+                                    {
+                                        text.Span($" - Frecuencia: {r.Frecuencia}").FontSize(10);
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(r.Duracion))
+                                    {
+                                        text.Span($" - Duración: {r.Duracion}").FontSize(10);
+                                    }
+                                });
+                            }
+                        }
+
                         col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten3);
                     }
                 });
