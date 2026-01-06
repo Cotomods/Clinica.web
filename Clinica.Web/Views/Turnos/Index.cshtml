@@ -1,0 +1,74 @@
+@model IEnumerable<Clinica.Domain.Entities.Turno>
+
+@{
+    ViewData["Title"] = "Turnos";
+}
+
+<h1>Turnos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo turno</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha/Hora</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Estado</th>
+            <th>Motivo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var t in Model)
+    {
+        <tr>
+            <td>@t.FechaHoraInicio.ToString("g")</td>
+            <td>@t.Paciente?.Apellido @t.Paciente?.Nombre</td>
+            <td>@t.Medico?.Apellido @t.Medico?.Nombre</td>
+            <td>
+                @if (t.PacienteId == null)
+                {
+                    <span class="badge bg-secondary">Libre</span>
+                }
+                else
+                {
+                    @switch (t.Estado)
+                    {
+                        case Clinica.Domain.Entities.EstadoTurno.Reservado:
+                            <span class="badge bg-warning text-dark">Reservado</span>;
+                            break;
+                        case Clinica.Domain.Entities.EstadoTurno.Confirmado:
+                            <span class="badge bg-info text-dark">Confirmado</span>;
+                            break;
+                        case Clinica.Domain.Entities.EstadoTurno.Atendido:
+                            <span class="badge bg-success">Atendido</span>;
+                            break;
+                        case Clinica.Domain.Entities.EstadoTurno.Cancelado:
+                            <span class="badge bg-danger">Cancelado</span>;
+                            break;
+                        case Clinica.Domain.Entities.EstadoTurno.Ausente:
+                            <span class="badge bg-dark">Ausente</span>;
+                            break;
+                        default:
+                            <span class="badge bg-secondary">@t.Estado</span>;
+                            break;
+                    }
+                }
+            </td>
+            <td>
+                @if (t.PacienteId == null)
+                {
+                    <a asp-action="Asignar" asp-route-id="@t.TurnoId" class="btn btn-sm btn-success me-1">Asignar</a>
+                }
+                @if (t.PacienteId != null)
+                {
+                    <a asp-action="CambiarEstado" asp-route-id="@t.TurnoId" class="btn btn-sm btn-outline-primary">Cambiar estado</a>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

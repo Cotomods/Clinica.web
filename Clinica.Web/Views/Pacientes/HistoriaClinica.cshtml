@@ -1,0 +1,47 @@
+@model Clinica.Web.Models.HistoriaClinicaViewModel
+
+@{
+    ViewData["Title"] = "Historia clínica";
+}
+
+<h1>Historia clínica</h1>
+
+<p>
+    <strong>Paciente:</strong> @Model.Paciente.Apellido @Model.Paciente.Nombre<br />
+    <strong>Documento:</strong> @Model.Paciente.TipoDocumento @Model.Paciente.NumeroDocumento<br />
+</p>
+
+<p>
+    <a asp-action="HistoriaClinicaPdf" asp-route-id="@Model.Paciente.PacienteId" class="btn btn-sm btn-outline-primary">Exportar a PDF</a>
+</p>
+
+@if (!Model.Consultas.Any())
+{
+    <p>No hay consultas registradas para este paciente.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Médico</th>
+                <th>Motivo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in Model.Consultas)
+        {
+            <tr>
+                <td>@c.FechaConsulta.ToString("g")</td>
+                <td>@c.Medico?.Apellido @c.Medico?.Nombre</td>
+                <td>@c.MotivoConsulta</td>
+                <td>
+                    <a asp-controller="Consultas" asp-action="Edit" asp-route-id="@c.ConsultaMedicaId" class="btn btn-sm btn-outline-secondary">Ver / Editar</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
