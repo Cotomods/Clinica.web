@@ -3,12 +3,32 @@
   "WorkspaceRootPath": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\data\\seed.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\data\\seed.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\services\\historiaclinicapdfservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\services\\historiaclinicapdfservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\models\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\models\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\models\\asignarturnoviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\models\\asignarturnoviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\models\\cambiarestadoturnoviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\models\\cambiarestadoturnoviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\models\\calendarioturnosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\models\\calendarioturnosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\controllers\\calendariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\controllers\\calendariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\data\\seed.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|solutionrelative:clinica.web\\data\\seed.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D54C8436-EA8F-4C9B-B883-6818701C264D}|Clinica.Web\\Clinica.Web.csproj|c:\\users\\agustin\\source\\repos\\clinica.web\\clinica.web\\controllers\\medicoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -22,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
@@ -42,7 +62,67 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
+              "Title": "SeedData.cs",
+              "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\SeedData.cs",
+              "RelativeDocumentMoniker": "Clinica.Web\\Models\\SeedData.cs",
+              "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\SeedData.cs",
+              "RelativeToolTip": "Clinica.Web\\Models\\SeedData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-06T23:44:56.668Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "CambiarEstadoTurnoViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\CambiarEstadoTurnoViewModel.cs",
+              "RelativeDocumentMoniker": "Clinica.Web\\Models\\CambiarEstadoTurnoViewModel.cs",
+              "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\CambiarEstadoTurnoViewModel.cs",
+              "RelativeToolTip": "Clinica.Web\\Models\\CambiarEstadoTurnoViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-06T23:42:49.959Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CalendarioTurnosViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\CalendarioTurnosViewModel.cs",
+              "RelativeDocumentMoniker": "Clinica.Web\\Models\\CalendarioTurnosViewModel.cs",
+              "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\CalendarioTurnosViewModel.cs",
+              "RelativeToolTip": "Clinica.Web\\Models\\CalendarioTurnosViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-06T23:44:52.22Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AsignarTurnoViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\AsignarTurnoViewModel.cs",
+              "RelativeDocumentMoniker": "Clinica.Web\\Models\\AsignarTurnoViewModel.cs",
+              "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Models\\AsignarTurnoViewModel.cs",
+              "RelativeToolTip": "Clinica.Web\\Models\\AsignarTurnoViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-06T23:44:51.063Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CalendarioController.cs",
+              "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Controllers\\CalendarioController.cs",
+              "RelativeDocumentMoniker": "Clinica.Web\\Controllers\\CalendarioController.cs",
+              "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Controllers\\CalendarioController.cs",
+              "RelativeToolTip": "Clinica.Web\\Controllers\\CalendarioController.cs",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAowAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-06T23:42:26.837Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "seed.json",
               "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Data\\seed.json",
               "RelativeDocumentMoniker": "Clinica.Web\\Data\\seed.json",
@@ -50,24 +130,24 @@
               "RelativeToolTip": "Clinica.Web\\Data\\seed.json",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABsAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-06T22:37:39.697Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-06T22:37:39.697Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "HistoriaClinicaPdfService.cs",
               "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Services\\HistoriaClinicaPdfService.cs",
               "RelativeDocumentMoniker": "Clinica.Web\\Services\\HistoriaClinicaPdfService.cs",
               "ToolTip": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Services\\HistoriaClinicaPdfService.cs",
               "RelativeToolTip": "Clinica.Web\\Services\\HistoriaClinicaPdfService.cs",
-              "ViewState": "AgIAAFcAAAAAAAAAAAASwGsAAAAjAAAAAAAAAA==",
+              "ViewState": "AgIAACcAAAAAAAAAAAASwGsAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-06T22:21:14.906Z"
+              "WhenOpened": "2026-01-06T22:21:14.906Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 7,
               "Title": "MedicosController.cs",
               "DocumentMoniker": "C:\\Users\\Agustin\\source\\repos\\Clinica.web\\Clinica.Web\\Controllers\\MedicosController.cs",
               "RelativeDocumentMoniker": "Clinica.Web\\Controllers\\MedicosController.cs",

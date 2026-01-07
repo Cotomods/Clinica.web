@@ -20,6 +20,18 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
+[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Calendario/Asignar.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FsZW5kYXJpb1xBc2lnbmFyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Calendario/CambiarEstado.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FsZW5kYXJpb1xDYW1iaWFyRXN0YWRvLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Calendario/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FsZW5kYXJpb1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Consultas/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29uc3VsdGFzXEVkaXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -62,26 +74,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Turnos/Asignar.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHVybm9zXEFzaWduYXIuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Turnos/Calendario.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHVybm9zXENhbGVuZGFyaW8uY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Turnos/CambiarEstado.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHVybm9zXENhbWJpYXJFc3RhZG8uY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Turnos/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHVybm9zXENyZWF0ZS5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/Turnos/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHVybm9zXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Agustin/source/repos/Clinica.web/Clinica.Web/Views/_ViewImports.cshtml]

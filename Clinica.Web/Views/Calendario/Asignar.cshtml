@@ -11,7 +11,7 @@
     <strong>Fecha/Hora:</strong> @Model.FechaHora.ToString("g")
 </p>
 
-<form asp-action="Asignar" method="post">
+<form asp-controller="Calendario" asp-action="Asignar" method="post">
     <input type="hidden" asp-for="TurnoId" />
 
     <div class="mb-3">
@@ -26,5 +26,5 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Asignar</button>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    <a asp-controller="Calendario" asp-action="Index" class="btn btn-secondary">Volver</a>
 </form>

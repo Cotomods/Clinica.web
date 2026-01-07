@@ -7,30 +7,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Web.Controllers;
 
-public class TurnosController : Controller
+public class CalendarioController : Controller
 {
     private readonly ClinicaDbContext _context;
 
-    public TurnosController(ClinicaDbContext context)
+    public CalendarioController(ClinicaDbContext context)
     {
         _context = context;
     }
 
-    // GET: /Turnos
-    public async Task<IActionResult> Index()
-    {
-        var turnos = await _context.Turnos
-            .Include(t => t.Paciente)
-            .Include(t => t.Medico)
-            .AsNoTracking()
-            .OrderBy(t => t.FechaHoraInicio)
-            .ToListAsync();
-
-        return View(turnos);
-    }
-
-    // GET: /Turnos/Calendario
-    public async Task<IActionResult> Calendario(DateTime? fecha, int? medicoId)
+    // GET: /Calendario
+    public async Task<IActionResult> Index(DateTime? fecha, int? medicoId)
     {
         var baseDate = (fecha ?? DateTime.Today).Date;
         var firstDayOfMonth = new DateTime(baseDate.Year, baseDate.Month, 1);
@@ -75,38 +62,7 @@ public class TurnosController : Controller
         return View(vm);
     }
 
-    // GET: /Turnos/Create
-    public async Task<IActionResult> Create()
-    {
-        ViewData["PacienteId"] = new SelectList(await _context.Pacientes.AsNoTracking().ToListAsync(), "PacienteId", "Apellido");
-        ViewData["MedicoId"] = new SelectList(await _context.Medicos.AsNoTracking().ToListAsync(), "MedicoId", "Apellido");
-        return View();
-    }
-
-    // POST: /Turnos/Create
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Turno turno)
-    {
-        if (!ModelState.IsValid)
-        {
-            ViewData["PacienteId"] = new SelectList(_context.Pacientes, "PacienteId", "Apellido", turno.PacienteId);
-            ViewData["MedicoId"] = new SelectList(_context.Medicos, "MedicoId", "Apellido", turno.MedicoId);
-            return View(turno);
-        }
-
-        // Por simplicidad, calculamos FechaHoraFin como +30 minutos
-        if (turno.FechaHoraFin == default)
-        {
-            turno.FechaHoraFin = turno.FechaHoraInicio.AddMinutes(30);
-        }
-
-        _context.Turnos.Add(turno);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: /Turnos/Asignar/5
+    // GET: /Calendario/Asignar/5
     public async Task<IActionResult> Asignar(int id)
     {
         var turno = await _context.Turnos
@@ -121,8 +77,8 @@ public class TurnosController : Controller
 
         if (turno.PacienteId != null)
         {
-            // Ya está asignado
-            return RedirectToAction(nameof(Index));
+            // Ya está asignado, volvemos al calendario del día del turno y médico correspondiente
+            return RedirectToAction(nameof(Index), new { fecha = turno.FechaHoraInicio.Date.ToString("yyyy-MM-dd"), medicoId = turno.MedicoId });
         }
 
         var model = new AsignarTurnoViewModel
@@ -136,7 +92,7 @@ public class TurnosController : Controller
         return View(model);
     }
 
-    // POST: /Turnos/Asignar
+    // POST: /Calendario/Asignar
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Asignar(AsignarTurnoViewModel model)
@@ -171,10 +127,11 @@ public class TurnosController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index));
+        // Volvemos al calendario del día y médico del turno asignado
+        return RedirectToAction(nameof(Index), new { fecha = turno.FechaHoraInicio.Date.ToString("yyyy-MM-dd"), medicoId = turno.MedicoId });
     }
 
-    // GET: /Turnos/CambiarEstado/5
+    // GET: /Calendario/CambiarEstado/5
     public async Task<IActionResult> CambiarEstado(int id)
     {
         var turno = await _context.Turnos
@@ -199,7 +156,7 @@ public class TurnosController : Controller
         return View(model);
     }
 
-    // POST: /Turnos/CambiarEstado
+    // POST: /Calendario/CambiarEstado
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarEstado(CambiarEstadoTurnoViewModel model)
@@ -244,6 +201,7 @@ public class TurnosController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index));
+        // Para otros estados, volver al calendario del día y médico del turno
+        return RedirectToAction(nameof(Index), new { fecha = turno.FechaHoraInicio.Date.ToString("yyyy-MM-dd"), medicoId = turno.MedicoId });
     }
 }

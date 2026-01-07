@@ -239,4 +239,4 @@ C:\Users\Agustin\Source\Repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\refint\Cl
 C:\Users\Agustin\Source\Repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\Clinica.Web.pdb
 C:\Users\Agustin\Source\Repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\Clinica.Web.genruntimeconfig.cache
 C:\Users\Agustin\Source\Repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\ref\Clinica.Web.dll
-C:\Users\Agustin\Source\Repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\Agustin\source\repos\Clinica.web\Clinica.Web\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

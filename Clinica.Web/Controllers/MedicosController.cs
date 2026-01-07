@@ -152,6 +152,7 @@ public class MedicosController : Controller
             await _context.SaveChangesAsync();
         }
 
-        return RedirectToAction("Index", "Turnos");
+        // Redirigir al calendario de turnos luego de generar la agenda
+        return RedirectToAction("Index", "Calendario");
     }
 }

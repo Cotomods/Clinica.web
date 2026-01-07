@@ -12,7 +12,7 @@
     <strong>Fecha/Hora:</strong> @Model.FechaHora.ToString("g")
 </p>
 
-<form asp-action="CambiarEstado" method="post">
+<form asp-controller="Calendario" asp-action="CambiarEstado" method="post">
     <input type="hidden" asp-for="TurnoId" />
 
     <div class="mb-3">
@@ -22,5 +22,5 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    <a asp-controller="Calendario" asp-action="Index" class="btn btn-secondary">Volver</a>
 </form>

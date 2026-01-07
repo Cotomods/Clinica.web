@@ -51,6 +51,12 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+// Ruta corta para el calendario de turnos: /Calendario
+app.MapControllerRoute(
+    name: "calendario",
+    pattern: "Calendario/{medicoId?}",
+    defaults: new { controller = "Calendario", action = "Index" });
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

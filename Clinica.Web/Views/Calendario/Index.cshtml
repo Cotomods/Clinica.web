@@ -11,7 +11,7 @@
 <h1>Calendario de turnos (@Model.FechaSeleccionada.ToString("MMMM yyyy"))</h1>
 
 <div class="mb-3">
-    <form asp-action="Calendario" method="get" class="row g-2">
+    <form asp-controller="Calendario" asp-action="Index" method="get" class="row g-2">
         <div class="col-auto">
             <input type="month" name="fecha" class="form-control" value="@Model.FechaSeleccionada.ToString("yyyy-MM")" />
         </div>
@@ -58,7 +58,7 @@
                         <td class="@(tieneTurnos ? "bg-light" : "")">
                             @if (tieneTurnos)
                             {
-                                <a asp-action="Calendario" asp-route-fecha="@fechaDia.ToString("yyyy-MM-dd")" class="btn btn-sm @(fechaDia.Date == Model.FechaSeleccionada.Date ? "btn-primary" : "btn-outline-primary")">
+                                <a asp-controller="Calendario" asp-action="Index" asp-route-fecha="@fechaDia.ToString("yyyy-MM-dd")" class="btn btn-sm @(fechaDia.Date == Model.FechaSeleccionada.Date ? "btn-primary" : "btn-outline-primary")">
                                     @day
                                 </a>
                             }
@@ -137,7 +137,11 @@ else
                 <td>
                     @if (t.PacienteId == null && t.FechaHoraInicio >= DateTime.Now)
                     {
-                        <a asp-action="Asignar" asp-route-id="@t.TurnoId" class="btn btn-sm btn-success">Asignar</a>
+                        <a asp-controller="Calendario" asp-action="Asignar" asp-route-id="@t.TurnoId" class="btn btn-sm btn-success">Asignar</a>
+                    }
+                    @if (t.PacienteId != null)
+                    {
+                        <a asp-controller="Calendario" asp-action="CambiarEstado" asp-route-id="@t.TurnoId" class="btn btn-sm btn-outline-primary ms-1">Cambiar estado</a>
                     }
                 </td>
             </tr>
