@@ -1,0 +1,26 @@
+@model Clinica.Web.Models.CambiarEstadoTurnoViewModel
+
+@{
+    ViewData["Title"] = "Cambiar estado del turno";
+}
+
+<h1>Cambiar estado del turno</h1>
+
+<p>
+    <strong>Médico:</strong> @Model.MedicoNombre<br />
+    <strong>Paciente:</strong> @(Model.PacienteNombre ?? "(sin asignar)")<br />
+    <strong>Fecha/Hora:</strong> @Model.FechaHora.ToString("g")
+</p>
+
+<form asp-controller="Calendario" asp-action="CambiarEstado" method="post">
+    <input type="hidden" asp-for="TurnoId" />
+
+    <div class="mb-3">
+        <label asp-for="Estado" class="form-label"></label>
+        <select asp-for="Estado" class="form-select" asp-items="Html.GetEnumSelectList<Clinica.Domain.Entities.EstadoTurno>()"></select>
+        <span asp-validation-for="Estado" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-controller="Calendario" asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>

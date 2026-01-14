@@ -1,0 +1,37 @@
+@model IEnumerable<Clinica.Domain.Entities.Medico>
+
+@{
+    ViewData["Title"] = "Médicos";
+}
+
+<h1>Médicos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo médico</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Especialidad</th>
+            <th>Matrícula</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var m in Model)
+    {
+        <tr>
+            <td>@m.Nombre</td>
+            <td>@m.Apellido</td>
+            <td>@m.Especialidad?.Nombre</td>
+            <td>@m.Matricula</td>
+            <td>
+                <a asp-action="GenerarTurnos" asp-route-id="@m.MedicoId" class="btn btn-sm btn-secondary">Generar turnos</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

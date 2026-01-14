@@ -1,0 +1,30 @@
+@model Clinica.Web.Models.AsignarTurnoViewModel
+
+@{
+    ViewData["Title"] = "Asignar turno";
+}
+
+<h1>Asignar turno</h1>
+
+<p>
+    <strong>Médico:</strong> @Model.MedicoNombre<br />
+    <strong>Fecha/Hora:</strong> @Model.FechaHora.ToString("g")
+</p>
+
+<form asp-controller="Calendario" asp-action="Asignar" method="post">
+    <input type="hidden" asp-for="TurnoId" />
+
+    <div class="mb-3">
+        <label asp-for="PacienteId" class="form-label"></label>
+        <select asp-for="PacienteId" class="form-select" asp-items="ViewBag.PacienteId"></select>
+        <span asp-validation-for="PacienteId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MotivoConsulta" class="form-label"></label>
+        <input asp-for="MotivoConsulta" class="form-control" />
+        <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Asignar</button>
+    <a asp-controller="Calendario" asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>

@@ -1,0 +1,166 @@
+@model Clinica.Web.Models.ConsultaMedicaEditViewModel
+
+@{
+    ViewData["Title"] = "Consulta médica";
+}
+
+<h1>Consulta médica</h1>
+
+<p>
+    <strong>Paciente:</strong> @Model.PacienteNombre<br />
+    <strong>Médico:</strong> @Model.MedicoNombre<br />
+    <strong>Fecha:</strong> @Model.FechaConsulta.ToString("g")
+</p>
+
+<form asp-action="Edit" method="post" class="mb-4">
+    <input type="hidden" asp-for="ConsultaMedicaId" />
+    <input type="hidden" asp-for="PacienteId" />
+    <input type="hidden" asp-for="MedicoId" />
+
+    <div class="mb-3">
+        <label asp-for="MotivoConsulta" class="form-label"></label>
+        <input asp-for="MotivoConsulta" class="form-control" />
+        <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Anamnesis" class="form-label"></label>
+        <textarea asp-for="Anamnesis" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Anamnesis" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ExamenFisico" class="form-label"></label>
+        <textarea asp-for="ExamenFisico" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="ExamenFisico" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Indicaciones" class="form-label"></label>
+        <textarea asp-for="Indicaciones" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Indicaciones" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NotasInternas" class="form-label"></label>
+        <textarea asp-for="NotasInternas" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="NotasInternas" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="HistoriaClinica" asp-controller="Pacientes" asp-route-id="@Model.PacienteId" class="btn btn-secondary">Volver a historia clínica</a>
+</form>
+
+<hr />
+
+<h2>Diagnósticos</h2>
+
+@if (Model.Diagnosticos.Any())
+{
+    <table class="table table-sm table-bordered">
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th style="width: 1%;"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var d in Model.Diagnosticos)
+        {
+            <tr>
+                <td>@d.Codigo</td>
+                <td>@d.Descripcion</td>
+                <td>
+                    <form asp-action="EliminarDiagnostico" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@d.DiagnosticoId" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">No hay diagnósticos registrados.</p>
+}
+
+<form asp-action="AgregarDiagnostico" method="post" class="row g-2 align-items-end mb-4">
+    <input type="hidden" asp-for="ConsultaMedicaId" />
+    <div class="col-md-2">
+        <label asp-for="NuevoDiagnosticoCodigo" class="form-label"></label>
+        <input asp-for="NuevoDiagnosticoCodigo" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="NuevoDiagnosticoDescripcion" class="form-label"></label>
+        <input asp-for="NuevoDiagnosticoDescripcion" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-success">Agregar diagnóstico</button>
+    </div>
+</form>
+
+<hr />
+
+<h2>Recetas</h2>
+
+@if (Model.Recetas.Any())
+{
+    <table class="table table-sm table-bordered">
+        <thead>
+        <tr>
+            <th>Medicamento</th>
+            <th>Dosis</th>
+            <th>Frecuencia</th>
+            <th>Duración</th>
+            <th style="width: 1%;"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var r in Model.Recetas)
+        {
+            <tr>
+                <td>@r.Medicamento</td>
+                <td>@r.Dosis</td>
+                <td>@r.Frecuencia</td>
+                <td>@r.Duracion</td>
+                <td>
+                    <form asp-action="EliminarReceta" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@r.RecetaId" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">No hay recetas registradas.</p>
+}
+
+<form asp-action="AgregarReceta" method="post" class="row g-2 align-items-end">
+    <input type="hidden" asp-for="ConsultaMedicaId" />
+    <div class="col-md-3">
+        <label asp-for="NuevaRecetaMedicamento" class="form-label"></label>
+        <input asp-for="NuevaRecetaMedicamento" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label asp-for="NuevaRecetaDosis" class="form-label"></label>
+        <input asp-for="NuevaRecetaDosis" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="NuevaRecetaFrecuencia" class="form-label"></label>
+        <input asp-for="NuevaRecetaFrecuencia" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label asp-for="NuevaRecetaDuracion" class="form-label"></label>
+        <input asp-for="NuevaRecetaDuracion" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-success">Agregar receta</button>
+    </div>
+</form>

@@ -1,0 +1,35 @@
+@model Clinica.Web.Models.GenerarTurnosViewModel
+
+@{
+    ViewData["Title"] = "Generar turnos";
+}
+
+<h1>Generar turnos para @Model.MedicoNombre</h1>
+
+<form asp-action="GenerarTurnos" method="post">
+    <input type="hidden" asp-for="MedicoId" />
+
+    <div class="mb-3">
+        <label asp-for="Fecha" class="form-label"></label>
+        <input asp-for="Fecha" class="form-control" type="date" />
+        <span asp-validation-for="Fecha" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="HoraInicio" class="form-label"></label>
+        <input asp-for="HoraInicio" class="form-control" type="time" />
+        <span asp-validation-for="HoraInicio" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="HoraFin" class="form-label"></label>
+        <input asp-for="HoraFin" class="form-control" type="time" />
+        <span asp-validation-for="HoraFin" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="DuracionMinutos" class="form-label"></label>
+        <input asp-for="DuracionMinutos" class="form-control" />
+        <span asp-validation-for="DuracionMinutos" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Generar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>

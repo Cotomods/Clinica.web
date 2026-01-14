@@ -1,0 +1,169 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 0;
+  overflow-x: hidden;
+}
+
+/* Sidebar layout */
+.sidebar {
+  width: 64px;
+  min-height: 100vh;
+  transition: width 0.2s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1030;
+}
+
+body.sidebar-expanded .sidebar {
+  width: 220px;
+}
+
+.main-content {
+  transition: padding-left 0.2s ease;
+  padding-left: 64px;
+}
+
+/* Ajustar contenido principal según ancho de sidebar */
+body.sidebar-expanded .main-content {
+  padding-left: 220px;
+}
+
+/* Mostrar/ocultar textos según estado */
+.sidebar .sidebar-text,
+.sidebar .sidebar-brand-text {
+  display: none;
+}
+
+body.sidebar-expanded .sidebar .sidebar-text,
+body.sidebar-expanded .sidebar .sidebar-brand-text {
+  display: inline;
+}
+
+/* Alinear iconos al centro cuando está colapsado */
+body.sidebar-collapsed .sidebar .nav-link {
+  justify-content: center;
+}
+
+body.sidebar-expanded .sidebar .nav-link {
+  justify-content: flex-start;
+}
+
+/* Dark mode */
+body.dark-mode {
+  background-color: #121212;
+  color: #f8f9fa;
+}
+
+/* Corregir header/footer (override de bg-white de Bootstrap) */
+body.dark-mode .main-content header,
+body.dark-mode .main-content footer,
+body.dark-mode .bg-white {
+  background-color: #1e1e1e !important;
+  color: #f8f9fa;
+}
+
+/* Tarjetas y contenedores */
+body.dark-mode .main-content .card,
+body.dark-mode .card {
+  background-color: #1e1e1e;
+  color: #f8f9fa;
+  border-color: #343a40;
+}
+
+/* Tablas */
+body.dark-mode .table {
+  color: #f8f9fa;
+}
+
+body.dark-mode .table thead {
+  background-color: #1e1e1e;
+}
+
+/* Tablas: forzar modo oscuro incluso con clases Bootstrap */
+body.dark-mode table.table,
+body.dark-mode table.table th,
+body.dark-mode table.table td {
+  background-color: #121212 !important;
+  color: #f8f9fa !important;
+}
+
+/* Filas de tablas stripadas */
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: #181818 !important;
+}
+
+body.dark-mode .table-striped > tbody > tr:nth-of-type(even) > * {
+  background-color: #151515 !important;
+}
+
+body.dark-mode .table > :not(caption) > * > * {
+  border-color: #343a40;
+}
+
+/* Links */
+body.dark-mode a {
+  color: #9fcdff;
+}
+
+/* Texto utilitario que puede quedar ilegible */
+body.dark-mode .text-muted {
+  color: #ced4da !important;
+}
+
+body.dark-mode .text-dark {
+  color: #f8f9fa !important;
+}
+
+/* Campos de formulario */
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #1e1e1e;
+  color: #f8f9fa;
+  border-color: #495057;
+}
+
+body.dark-mode .form-control::placeholder {
+  color: #adb5bd;
+}
+
+/* Botones outline más legibles en oscuro */
+body.dark-mode .btn-outline-primary {
+  color: #9fcdff;
+  border-color: #9fcdff;
+}
+
+body.dark-mode .btn-outline-primary:hover {
+  background-color: #9fcdff;
+  color: #121212;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

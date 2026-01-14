@@ -1,0 +1,151 @@
+@model Clinica.Web.Models.CalendarioTurnosViewModel
+
+@{
+    ViewData["Title"] = "Calendario de turnos";
+    var firstDayOfMonth = new DateTime(Model.Anio, Model.Mes, 1);
+    var daysInMonth = DateTime.DaysInMonth(Model.Anio, Model.Mes);
+    // Lunes = 1 ... Domingo = 0/7
+    int offset = ((int)firstDayOfMonth.DayOfWeek + 6) % 7;
+}
+
+<h1>Calendario de turnos (@Model.FechaSeleccionada.ToString("MMMM yyyy"))</h1>
+
+<div class="mb-3">
+    <form asp-controller="Calendario" asp-action="Index" method="get" class="row g-2">
+        <div class="col-auto">
+            <input type="month" name="fecha" class="form-control" value="@Model.FechaSeleccionada.ToString("yyyy-MM")" />
+        </div>
+        <div class="col-auto">
+            <select name="medicoId" class="form-select" asp-items="ViewBag.MedicoId">
+                <option value="">Todos los médicos</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<table class="table table-bordered text-center">
+    <thead>
+        <tr>
+            <th>Lun</th>
+            <th>Mar</th>
+            <th>Mié</th>
+            <th>Jue</th>
+            <th>Vie</th>
+            <th>Sáb</th>
+            <th>Dom</th>
+        </tr>
+    </thead>
+    <tbody>
+    @{
+        int day = 1;
+        int col = 0;
+        while (day <= daysInMonth)
+        {
+            <tr>
+                @for (int i = 0; i < 7; i++)
+                {
+                    if (col < offset || day > daysInMonth)
+                    {
+                        <td></td>;
+                    }
+                    else
+                    {
+                        bool tieneTurnos = Model.DiasConTurnos.Contains(day);
+                        var fechaDia = new DateTime(Model.Anio, Model.Mes, day);
+                        <td class="@(tieneTurnos ? "bg-light" : "")">
+                            @if (tieneTurnos)
+                            {
+                                <a asp-controller="Calendario" asp-action="Index" asp-route-fecha="@fechaDia.ToString("yyyy-MM-dd")" class="btn btn-sm @(fechaDia.Date == Model.FechaSeleccionada.Date ? "btn-primary" : "btn-outline-primary")">
+                                    @day
+                                </a>
+                            }
+                            else
+                            {
+                                @day
+                            }
+                        </td>;
+                        day++;
+                    }
+                    col++;
+                }
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+
+<h2>Turnos del @Model.FechaSeleccionada.ToString("dd/MM/yyyy")</h2>
+
+@if (!Model.TurnosDelDia.Any())
+{
+    <p>No hay turnos para este día.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Estado</th>
+                <th>Motivo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var t in Model.TurnosDelDia)
+        {
+            <tr>
+                <td>@t.FechaHoraInicio.ToString("HH:mm")</td>
+                <td>@t.Paciente?.Apellido @t.Paciente?.Nombre</td>
+                <td>@t.Medico?.Apellido @t.Medico?.Nombre</td>
+                <td>
+                    @if (t.PacienteId == null)
+                    {
+                        <span class="badge bg-secondary">Libre</span>
+                    }
+                    else
+                    {
+                        @switch (t.Estado)
+                        {
+                            case Clinica.Domain.Entities.EstadoTurno.Reservado:
+                                <span class="badge bg-warning text-dark">Reservado</span>;
+                                break;
+                            case Clinica.Domain.Entities.EstadoTurno.Confirmado:
+                                <span class="badge bg-info text-dark">Confirmado</span>;
+                                break;
+                            case Clinica.Domain.Entities.EstadoTurno.Atendido:
+                                <span class="badge bg-success">Atendido</span>;
+                                break;
+                            case Clinica.Domain.Entities.EstadoTurno.Cancelado:
+                                <span class="badge bg-danger">Cancelado</span>;
+                                break;
+                            case Clinica.Domain.Entities.EstadoTurno.Ausente:
+                                <span class="badge bg-dark">Ausente</span>;
+                                break;
+                            default:
+                                <span class="badge bg-secondary">@t.Estado</span>;
+                                break;
+                        }
+                    }
+                </td>
+                <td>@t.MotivoConsulta</td>
+                <td>
+                    @if (t.PacienteId == null && t.FechaHoraInicio >= DateTime.Now)
+                    {
+                        <a asp-controller="Calendario" asp-action="Asignar" asp-route-id="@t.TurnoId" class="btn btn-sm btn-success">Asignar</a>
+                    }
+                    @if (t.PacienteId != null)
+                    {
+                        <a asp-controller="Calendario" asp-action="CambiarEstado" asp-route-id="@t.TurnoId" class="btn btn-sm btn-outline-primary ms-1">Cambiar estado</a>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

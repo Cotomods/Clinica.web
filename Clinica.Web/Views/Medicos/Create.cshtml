@@ -1,0 +1,33 @@
+@model Clinica.Web.Models.MedicoCreateViewModel
+
+@{
+    ViewData["Title"] = "Nuevo médico";
+}
+
+<h1>Nuevo médico</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Apellido" class="form-label"></label>
+        <input asp-for="Apellido" class="form-control" />
+        <span asp-validation-for="Apellido" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Matricula" class="form-label"></label>
+        <input asp-for="Matricula" class="form-control" />
+        <span asp-validation-for="Matricula" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="EspecialidadNombre" class="form-label"></label>
+        <input asp-for="EspecialidadNombre" class="form-control" />
+        <span asp-validation-for="EspecialidadNombre" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
