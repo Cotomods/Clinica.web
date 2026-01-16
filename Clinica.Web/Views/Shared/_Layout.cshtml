@@ -59,8 +59,9 @@
     <!-- Contenido principal -->
     <div class="main-content d-flex flex-column min-vh-100">
         <header class="border-bottom bg-white">
-                <div class="container-fluid py-2">
+                <div class="container-fluid py-2 d-flex justify-content-between align-items-center">
                     <span class="fw-semibold">@ViewData["Title"]</span>
+                    @await Html.PartialAsync("_LoginPartial")
                 </div>
             </header>
 

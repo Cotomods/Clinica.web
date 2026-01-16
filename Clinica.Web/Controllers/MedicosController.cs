@@ -1,11 +1,13 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Web.Controllers;
 
+[Authorize]
 public class MedicosController : Controller
 {
     private readonly ClinicaDbContext _context;
@@ -16,6 +18,7 @@ public class MedicosController : Controller
     }
 
     // GET: /Medicos
+    [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> Index()
     {
         var medicos = await _context.Medicos
@@ -26,6 +29,7 @@ public class MedicosController : Controller
     }
 
     // GET: /Medicos/Create
+    [Authorize(Roles = "Admin,RecursosHumanos")]
     public IActionResult Create()
     {
         return View(new MedicoCreateViewModel());
@@ -34,6 +38,7 @@ public class MedicosController : Controller
     // POST: /Medicos/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> Create(MedicoCreateViewModel model)
     {
         if (!ModelState.IsValid)
@@ -72,6 +77,7 @@ public class MedicosController : Controller
     }
 
     // GET: /Medicos/GenerarTurnos/5
+    [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> GenerarTurnos(int id)
     {
         var medico = await _context.Medicos.FindAsync(id);
@@ -96,6 +102,7 @@ public class MedicosController : Controller
     // POST: /Medicos/GenerarTurnos
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> GenerarTurnos(GenerarTurnosViewModel model)
     {
         var medico = await _context.Medicos.FindAsync(model.MedicoId);

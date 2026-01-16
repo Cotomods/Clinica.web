@@ -1,21 +1,27 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Web.Controllers;
 
+[Authorize]
 public class PacientesController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public PacientesController(ClinicaDbContext context)
+    public PacientesController(ClinicaDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: /Pacientes
+    [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos")]
     public async Task<IActionResult> Index()
     {
         var pacientes = await _context.Pacientes
@@ -26,6 +32,7 @@ public class PacientesController : Controller
     }
 
     // GET: /Pacientes/Create
+    [Authorize(Roles = "Admin,Recepcionista")]
     public IActionResult Create()
     {
         return View();
@@ -34,6 +41,7 @@ public class PacientesController : Controller
     // POST: /Pacientes/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Recepcionista")]
     public async Task<IActionResult> Create(Paciente paciente)
     {
         if (!ModelState.IsValid)
@@ -47,6 +55,7 @@ public class PacientesController : Controller
     }
 
     // GET: /Pacientes/HistoriaClinica/5
+    [Authorize(Roles = "Admin,Medico")]
     public async Task<IActionResult> HistoriaClinica(
         int id,
         DateTime? fechaDesde,
@@ -67,6 +76,17 @@ public class PacientesController : Controller
             .Include(c => c.Recetas)
             .Where(c => c.PacienteId == id)
             .AsQueryable();
+
+        // Si es médico, solo ve sus propias consultas sobre ese paciente
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId != null)
+            {
+                var mid = user.MedicoId.Value;
+                query = query.Where(c => c.MedicoId == mid);
+            }
+        }
 
         if (fechaDesde.HasValue)
         {
@@ -112,6 +132,7 @@ public class PacientesController : Controller
     }
 
     // GET: /Pacientes/HistoriaClinicaPdf/5
+    [Authorize(Roles = "Admin,Medico")]
     public async Task<IActionResult> HistoriaClinicaPdf(
         int id,
         DateTime? fechaDesde,
@@ -132,6 +153,16 @@ public class PacientesController : Controller
             .Include(c => c.Recetas)
             .Where(c => c.PacienteId == id)
             .AsQueryable();
+
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId != null)
+            {
+                var mid = user.MedicoId.Value;
+                query = query.Where(c => c.MedicoId == mid);
+            }
+        }
 
         if (fechaDesde.HasValue)
         {

@@ -1,12 +1,14 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Web.Controllers;
 
+[Authorize]
 public class CalendarioController : Controller
 {
     private readonly ClinicaDbContext _context;
@@ -17,6 +19,7 @@ public class CalendarioController : Controller
     }
 
     // GET: /Calendario
+    [Authorize(Roles = "Admin,Medico,Recepcionista")] // Medicos verán solo sus turnos en Fase 3 si filtramos por usuario
     public async Task<IActionResult> Index(DateTime? fecha, int? medicoId)
     {
         var baseDate = (fecha ?? DateTime.Today).Date;
@@ -63,6 +66,7 @@ public class CalendarioController : Controller
     }
 
     // GET: /Calendario/Asignar/5
+    [Authorize(Roles = "Admin,Recepcionista")]
     public async Task<IActionResult> Asignar(int id)
     {
         var turno = await _context.Turnos
@@ -95,6 +99,7 @@ public class CalendarioController : Controller
     // POST: /Calendario/Asignar
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Recepcionista")]
     public async Task<IActionResult> Asignar(AsignarTurnoViewModel model)
     {
         var turno = await _context.Turnos
@@ -132,6 +137,7 @@ public class CalendarioController : Controller
     }
 
     // GET: /Calendario/CambiarEstado/5
+    [Authorize(Roles = "Admin,Medico")]  // cambiar estados y generar consultas
     public async Task<IActionResult> CambiarEstado(int id)
     {
         var turno = await _context.Turnos
@@ -159,6 +165,7 @@ public class CalendarioController : Controller
     // POST: /Calendario/CambiarEstado
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Medico")]  // cambiar estados y generar consultas
     public async Task<IActionResult> CambiarEstado(CambiarEstadoTurnoViewModel model)
     {
         var turno = await _context.Turnos.FirstOrDefaultAsync(t => t.TurnoId == model.TurnoId);

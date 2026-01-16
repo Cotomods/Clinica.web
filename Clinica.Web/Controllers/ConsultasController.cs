@@ -1,11 +1,13 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Web.Controllers;
 
+[Authorize(Roles = "Admin,Medico")]
 public class ConsultasController : Controller
 {
     private readonly ClinicaDbContext _context;
