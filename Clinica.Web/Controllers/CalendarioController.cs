@@ -2,6 +2,7 @@ using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace Clinica.Web.Controllers;
 public class CalendarioController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public CalendarioController(ClinicaDbContext context)
+    public CalendarioController(ClinicaDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: /Calendario
@@ -26,13 +29,31 @@ public class CalendarioController : Controller
         var firstDayOfMonth = new DateTime(baseDate.Year, baseDate.Month, 1);
         var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
+        bool medicoSinVinculo = false;
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId != null)
+            {
+                medicoId = user.MedicoId.Value;
+            }
+            else
+            {
+                medicoSinVinculo = true;
+            }
+        }
+
         var query = _context.Turnos
             .Include(t => t.Paciente)
             .Include(t => t.Medico)
             .AsNoTracking()
             .Where(t => t.FechaHoraInicio.Date >= firstDayOfMonth && t.FechaHoraInicio.Date <= lastDayOfMonth);
 
-        if (medicoId.HasValue)
+        if (medicoSinVinculo)
+        {
+            query = query.Where(t => false);
+        }
+        else if (medicoId.HasValue)
         {
             query = query.Where(t => t.MedicoId == medicoId.Value);
         }
@@ -66,10 +87,17 @@ public class CalendarioController : Controller
             TurnosDelDia = turnosDelDia
         };
 
-        var medicos = await _context.Medicos
+        IQueryable<Medico> medicosQuery = _context.Medicos
             .AsNoTracking()
             .OrderBy(m => m.Apellido)
-            .ThenBy(m => m.Nombre)
+            .ThenBy(m => m.Nombre);
+
+        if (User.IsInRole("Medico") && medicoId.HasValue)
+        {
+            medicosQuery = medicosQuery.Where(m => m.MedicoId == medicoId.Value);
+        }
+
+        var medicos = await medicosQuery
             .Select(m => new
             {
                 m.MedicoId,
