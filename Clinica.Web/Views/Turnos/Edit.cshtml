@@ -1,0 +1,52 @@
+@model Clinica.Domain.Entities.Turno
+
+@{
+    ViewData["Title"] = "Editar turno";
+}
+
+<h1>Editar turno</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="TurnoId" />
+
+    <div class="mb-3">
+        <label class="form-label">Médico</label>
+        <select asp-for="MedicoId" class="form-select" asp-items="ViewBag.MedicoId"></select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Paciente</label>
+        <select asp-for="PacienteId" class="form-select" asp-items="ViewBag.PacienteId">
+            <option value="">(Sin paciente asignado)</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaHoraInicio" class="form-label"></label>
+        <input asp-for="FechaHoraInicio" class="form-control" type="datetime-local" />
+        <span asp-validation-for="FechaHoraInicio" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="FechaHoraFin" class="form-label"></label>
+        <input asp-for="FechaHoraFin" class="form-control" type="datetime-local" />
+        <span asp-validation-for="FechaHoraFin" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Estado" class="form-label"></label>
+        <select asp-for="Estado" class="form-select" asp-items="Html.GetEnumSelectList<Clinica.Domain.Entities.EstadoTurno>()"></select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MotivoConsulta" class="form-label"></label>
+        <input asp-for="MotivoConsulta" class="form-control" />
+        <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -21,7 +21,13 @@
             </select>
         </div>
         <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <select name="pacienteId" class="form-select" asp-items="ViewBag.PacienteId">
+                <option value="">Todos los pacientes</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+            <a asp-controller="Calendario" asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
         </div>
     </form>
 </div>
@@ -58,7 +64,10 @@
                         <td class="@(tieneTurnos ? "bg-light" : "")">
                             @if (tieneTurnos)
                             {
-                                <a asp-controller="Calendario" asp-action="Index" asp-route-fecha="@fechaDia.ToString("yyyy-MM-dd")" class="btn btn-sm @(fechaDia.Date == Model.FechaSeleccionada.Date ? "btn-primary" : "btn-outline-primary")">
+                                <a asp-controller="Calendario" asp-action="Index"
+                                   asp-route-fecha="@fechaDia.ToString("yyyy-MM-dd")"
+                                   class="btn btn-sm @(fechaDia.Date == Model.FechaSeleccionada.Date ? "btn-primary" : "btn-outline-primary")"
+                                   data-cal-dia="true">
                                     @day
                                 </a>
                             }
@@ -148,4 +157,36 @@ else
         }
         </tbody>
     </table>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const medicoSelect = document.querySelector('select[name="medicoId"]');
+            const pacienteSelect = document.querySelector('select[name="pacienteId"]');
+
+            document.querySelectorAll('a[data-cal-dia="true"]').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const url = new URL(this.href, window.location.origin);
+
+                    if (medicoSelect && medicoSelect.value) {
+                        url.searchParams.set('medicoId', medicoSelect.value);
+                    } else {
+                        url.searchParams.delete('medicoId');
+                    }
+
+                    if (pacienteSelect && pacienteSelect.value) {
+                        url.searchParams.set('pacienteId', pacienteSelect.value);
+                    } else {
+                        url.searchParams.delete('pacienteId');
+                    }
+
+                    window.location.href = url.toString();
+                });
+            });
+        });
+    </script>
 }

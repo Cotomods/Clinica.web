@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Data;
 using Clinica.Web.Models;
@@ -15,11 +14,11 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
 builder.Services.AddDbContext<ClinicaDbContext>(options =>
-    options.UseInMemoryDatabase("ClinicaDb"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ClinicaDb")));
 
-// DbContext para Identity (usuarios y roles)
+// DbContext para Identity (usuarios y roles) usando la misma base de datos
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("ClinicaIdentity"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ClinicaDb")));
 
 // Identity + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
@@ -28,6 +27,12 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Configurar ruta de login personalizada y evitar exponer las páginas de registro/recuperación de contraseña
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+});
 
 builder.Services.AddRazorPages();
 
@@ -42,30 +47,11 @@ builder.Services.AddControllersWithViews(options =>
 
 var app = builder.Build();
 
-// Seed de datos desde JSON (solo para desarrollo/pruebas) y roles/usuarios de Identity
+// Seed de roles y usuario administrador inicial
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    // Seed de datos de dominio (pacientes y médicos)
-    var context = services.GetRequiredService<ClinicaDbContext>();
-    if (!context.Pacientes.Any() && !context.Medicos.Any())
-    {
-        var dataPath = Path.Combine(app.Environment.ContentRootPath, "Data", "seed.json");
-        if (File.Exists(dataPath))
-        {
-            var json = File.ReadAllText(dataPath);
-            var seed = JsonSerializer.Deserialize<Clinica.Web.Models.SeedData>(json);
-            if (seed != null)
-            {
-                context.Pacientes.AddRange(seed.Pacientes);
-                context.Medicos.AddRange(seed.Medicos);
-                context.SaveChanges();
-            }
-        }
-    }
-
-    // Seed de roles y usuario administrador inicial
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     SeedIdentity(roleManager, userManager);
@@ -97,6 +83,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
+
+// Bloquear directamente las URLs de registro y recuperación de contraseña de Identity
+app.MapGet("/Identity/Account/Register", () => Results.NotFound());
+app.MapPost("/Identity/Account/Register", () => Results.NotFound());
+app.MapGet("/Identity/Account/ForgotPassword", () => Results.NotFound());
+app.MapPost("/Identity/Account/ForgotPassword", () => Results.NotFound());
 
 app.Run();
 

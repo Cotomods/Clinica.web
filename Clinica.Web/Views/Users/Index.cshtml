@@ -1,0 +1,36 @@
+@model IEnumerable<Clinica.Web.Models.UserListViewModel>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h1>Usuarios</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo usuario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Médico</th>
+            <th>Roles</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var u in Model)
+    {
+        <tr>
+            <td>@u.Email</td>
+            <td>@u.MedicoNombre</td>
+            <td>@string.Join(", ", u.Roles)</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-outline-danger ms-1">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

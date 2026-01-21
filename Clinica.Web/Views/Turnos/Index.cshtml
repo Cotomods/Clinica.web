@@ -1,0 +1,70 @@
+@model IEnumerable<Clinica.Domain.Entities.Turno>
+
+@{
+    ViewData["Title"] = "Turnos";
+}
+
+<h1>Turnos</h1>
+
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <label class="form-label">Desde</label>
+        <input type="date" name="fechaDesde" class="form-control" value="@ViewBag.FechaDesde" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Hasta</label>
+        <input type="date" name="fechaHasta" class="form-control" value="@ViewBag.FechaHasta" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Médico</label>
+        <select name="medicoId" class="form-select" asp-items="ViewBag.MedicoId">
+            <option value="">Todos</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Paciente</label>
+        <select name="pacienteId" class="form-select" asp-items="ViewBag.PacienteId">
+            <option value="">Todos</option>
+        </select>
+    </div>
+    <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Médico</th>
+            <th>Paciente</th>
+            <th>Estado</th>
+            <th>Motivo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var t in Model)
+    {
+        <tr>
+            <td>@t.FechaHoraInicio.ToString("dd/MM/yyyy")</td>
+            <td>@t.FechaHoraInicio.ToString("HH:mm") - @t.FechaHoraFin.ToString("HH:mm")</td>
+            <td>@t.Medico?.Apellido @t.Medico?.Nombre</td>
+            <td>@t.Paciente?.Apellido @t.Paciente?.Nombre</td>
+            <td>@t.Estado</td>
+            <td>@t.MotivoConsulta</td>
+            <td>
+                @if (User.IsInRole("Admin") || User.IsInRole("Recepcionista"))
+                {
+                    <a asp-action="Edit" asp-route-id="@t.TurnoId" class="btn btn-sm btn-outline-primary me-1">Editar</a>
+                }
+                @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+                {
+                    <a asp-action="Delete" asp-route-id="@t.TurnoId" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

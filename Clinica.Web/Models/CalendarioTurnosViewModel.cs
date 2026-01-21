@@ -10,6 +10,8 @@ public class CalendarioTurnosViewModel
 
     public int? MedicoId { get; set; }
 
+    public int? PacienteId { get; set; }
+
     public List<int> DiasConTurnos { get; set; } = new();
     public List<Turno> TurnosDelDia { get; set; } = new();
 }

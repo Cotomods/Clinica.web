@@ -31,6 +31,8 @@
             <td>@p.Telefono</td>
             <td>@p.Email</td>
             <td>
+                <a asp-action="Edit" asp-route-id="@p.PacienteId" class="btn btn-sm btn-outline-primary me-1">Editar</a>
+                <a asp-action="Delete" asp-route-id="@p.PacienteId" class="btn btn-sm btn-outline-danger me-1">Eliminar</a>
                 <a asp-action="HistoriaClinica" asp-route-id="@p.PacienteId" class="btn btn-sm btn-outline-secondary">Historia clínica</a>
             </td>
         </tr>

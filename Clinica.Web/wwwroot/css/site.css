@@ -167,3 +167,9 @@ body.dark-mode .btn-outline-primary:hover {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Ocultar enlaces de registro y "olvidé mi contraseña" en la página de login de Identity */
+a[href*="/Account/Register"],
+a[href*="/Account/ForgotPassword"] {
+  display: none !important;
+}

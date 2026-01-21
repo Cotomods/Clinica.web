@@ -37,10 +37,24 @@ public class ClinicaDbContext : DbContext
             .HasForeignKey(p => p.PlanObraSocialId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // Evitar multiple cascade paths desde ObraSocial hacia Paciente
+        modelBuilder.Entity<PlanObraSocial>()
+            .HasOne(p => p.ObraSocial)
+            .WithMany(o => o.Planes)
+            .HasForeignKey(p => p.ObraSocialId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Turno>()
             .HasOne(t => t.ConsultaMedica)
             .WithOne()
             .HasForeignKey<Turno>(t => t.ConsultaMedicaId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Evitar multiple cascade paths desde Medico hacia Turno (via ConsultaMedica y directamente)
+        modelBuilder.Entity<Turno>()
+            .HasOne(t => t.Medico)
+            .WithMany(m => m.Turnos)
+            .HasForeignKey(t => t.MedicoId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

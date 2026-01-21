@@ -1,0 +1,24 @@
+@model Clinica.Web.Models.UserListViewModel
+
+@{
+    ViewData["Title"] = "Eliminar usuario";
+}
+
+<h1>Eliminar usuario</h1>
+
+<h3>¿Estás seguro que deseas eliminar este usuario?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.Email</dd>
+
+        <dt class="col-sm-2">Roles</dt>
+        <dd class="col-sm-10">@string.Join(", ", Model.Roles)</dd>
+    </dl>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

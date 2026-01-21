@@ -54,6 +54,84 @@ public class PacientesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: /Pacientes/Edit/5
+    [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos")]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var paciente = await _context.Pacientes.FindAsync(id);
+        if (paciente == null)
+        {
+            return NotFound();
+        }
+
+        return View(paciente);
+    }
+
+    // POST: /Pacientes/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos")]
+    public async Task<IActionResult> Edit(int id, Paciente paciente)
+    {
+        if (id != paciente.PacienteId)
+        {
+            return BadRequest();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(paciente);
+        }
+
+        _context.Entry(paciente).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: /Pacientes/Delete/5
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var paciente = await _context.Pacientes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PacienteId == id);
+
+        if (paciente == null)
+        {
+            return NotFound();
+        }
+
+        return View(paciente);
+    }
+
+    // POST: /Pacientes/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var paciente = await _context.Pacientes.FindAsync(id);
+        if (paciente == null)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            _context.Pacientes.Remove(paciente);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Si hay restricciones de FK (turnos/consultas), mostrar un mensaje simple
+            ModelState.AddModelError(string.Empty, "No se puede eliminar el paciente porque tiene información relacionada (turnos o consultas).");
+            return View(paciente);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
     // GET: /Pacientes/HistoriaClinica/5
     [Authorize(Roles = "Admin,Medico")]
     public async Task<IActionResult> HistoriaClinica(

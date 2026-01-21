@@ -46,6 +46,26 @@
                         <span class="sidebar-text">Calendario</span>
                     </a>
                 </li>
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Recepcionista") || User.IsInRole("RecursosHumanos"))
+                {
+                    <li class="nav-item">
+                        <a asp-controller="Turnos" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
+                            <i class="bi bi-table me-2"></i>
+                            <span class="sidebar-text">Turnos</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+                {
+                    <li class="nav-item">
+                        <a asp-controller="Users" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
+                            <i class="bi bi-people-fill me-2"></i>
+                            <span class="sidebar-text">Usuarios</span>
+                        </a>
+                    </li>
+                }
             </ul>
 
             <div class="mt-auto px-3 pb-3">

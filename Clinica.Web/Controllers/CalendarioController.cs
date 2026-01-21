@@ -20,7 +20,7 @@ public class CalendarioController : Controller
 
     // GET: /Calendario
     [Authorize(Roles = "Admin,Medico,Recepcionista")] // Medicos verán solo sus turnos en Fase 3 si filtramos por usuario
-    public async Task<IActionResult> Index(DateTime? fecha, int? medicoId)
+    public async Task<IActionResult> Index(DateTime? fecha, int? medicoId, int? pacienteId)
     {
         var baseDate = (fecha ?? DateTime.Today).Date;
         var firstDayOfMonth = new DateTime(baseDate.Year, baseDate.Month, 1);
@@ -35,6 +35,11 @@ public class CalendarioController : Controller
         if (medicoId.HasValue)
         {
             query = query.Where(t => t.MedicoId == medicoId.Value);
+        }
+
+        if (pacienteId.HasValue)
+        {
+            query = query.Where(t => t.PacienteId == pacienteId.Value);
         }
 
         var turnosMes = await query.ToListAsync();
@@ -56,11 +61,36 @@ public class CalendarioController : Controller
             Mes = baseDate.Month,
             FechaSeleccionada = baseDate,
             MedicoId = medicoId,
+            PacienteId = pacienteId,
             DiasConTurnos = diasConTurnos,
             TurnosDelDia = turnosDelDia
         };
 
-        ViewData["MedicoId"] = new SelectList(await _context.Medicos.AsNoTracking().ToListAsync(), "MedicoId", "Apellido", medicoId);
+        var medicos = await _context.Medicos
+            .AsNoTracking()
+            .OrderBy(m => m.Apellido)
+            .ThenBy(m => m.Nombre)
+            .Select(m => new
+            {
+                m.MedicoId,
+                NombreCompleto = $"{m.Apellido} {m.Nombre}"
+            })
+            .ToListAsync();
+
+        ViewData["MedicoId"] = new SelectList(medicos, "MedicoId", "NombreCompleto", medicoId);
+
+        var pacientes = await _context.Pacientes
+            .AsNoTracking()
+            .OrderBy(p => p.Apellido)
+            .ThenBy(p => p.Nombre)
+            .Select(p => new
+            {
+                p.PacienteId,
+                NombreCompleto = $"{p.Apellido} {p.Nombre}"
+            })
+            .ToListAsync();
+
+        ViewData["PacienteId"] = new SelectList(pacientes, "PacienteId", "NombreCompleto", pacienteId);
 
         return View(vm);
     }

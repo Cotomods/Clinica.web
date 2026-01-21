@@ -1,0 +1,67 @@
+@model Clinica.Web.Models.UserEditViewModel
+
+@{
+    ViewData["Title"] = "Editar usuario";
+    var allRoles = ViewBag.AllRoles as List<string> ?? new List<string>();
+    var selectedRoles = ViewBag.SelectedRoles as IList<string> ?? new List<string>();
+}
+
+<h1>Editar usuario</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3" id="medico-container">
+        <label class="form-label">Médico (opcional)</label>
+        <select asp-for="MedicoId" class="form-select" asp-items="ViewBag.MedicoId">
+            <option value="">(Sin médico asociado)</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Roles</label>
+        <div class="form-check" id="roles-container">
+            @foreach (var role in allRoles)
+            {
+                var isChecked = selectedRoles.Contains(role);
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="SelectedRoles" value="@role" id="role_@role" @(isChecked ? "checked" : "") />
+                    <label class="form-check-label" for="role_@role">@role</label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const medicoContainer = document.getElementById('medico-container');
+            const medicoCheckbox = document.getElementById('role_Medico');
+
+            function updateMedicoVisibility() {
+                if (medicoCheckbox && medicoCheckbox.checked) {
+                    medicoContainer.style.display = '';
+                } else {
+                    medicoContainer.style.display = 'none';
+                }
+            }
+
+            updateMedicoVisibility();
+
+            if (medicoCheckbox) {
+                medicoCheckbox.addEventListener('change', updateMedicoVisibility);
+            }
+        });
+    </script>
+}
