@@ -21,13 +21,44 @@ public class PacientesController : Controller
     }
 
     // GET: /Pacientes
-    [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos")]
+    [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos,Medico")]
     public async Task<IActionResult> Index()
     {
-        var pacientes = await _context.Pacientes
-            .AsNoTracking()
-            .ToListAsync();
+        IQueryable<Paciente> query = _context.Pacientes.AsNoTracking();
 
+        // Si es médico, solo ve los pacientes asociados a sus consultas o turnos
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId != null)
+            {
+                var mid = user.MedicoId.Value;
+
+                var pacientesIds = await _context.ConsultasMedicas
+                    .Where(c => c.MedicoId == mid)
+                    .Select(c => c.PacienteId)
+                    .Distinct()
+                    .ToListAsync();
+
+                pacientesIds = pacientesIds
+                    .Concat(await _context.Turnos
+                        .Where(t => t.MedicoId == mid && t.PacienteId.HasValue)
+                        .Select(t => t.PacienteId!.Value)
+                        .Distinct()
+                        .ToListAsync())
+                    .Distinct()
+                    .ToList();
+
+                query = query.Where(p => pacientesIds.Contains(p.PacienteId));
+            }
+            else
+            {
+                // Si el usuario Medico no está vinculado a un MedicoId, no mostrar pacientes
+                query = query.Where(p => false);
+            }
+        }
+
+        var pacientes = await query.ToListAsync();
         return View(pacientes);
     }
 

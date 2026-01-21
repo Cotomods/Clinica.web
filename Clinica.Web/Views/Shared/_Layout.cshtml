@@ -28,24 +28,35 @@
                         <span class="sidebar-text">Inicio</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a asp-controller="Pacientes" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
-                        <i class="bi bi-people me-2"></i>
-                        <span class="sidebar-text">Pacientes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-controller="Medicos" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
-                        <i class="bi bi-person-badge me-2"></i>
-                        <span class="sidebar-text">Médicos</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-controller="Calendario" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
-                        <i class="bi bi-calendar3 me-2"></i>
-                        <span class="sidebar-text">Calendario</span>
-                    </a>
-                </li>
+                @if (User.IsInRole("Admin") || User.IsInRole("Recepcionista") || User.IsInRole("RecursosHumanos") || User.IsInRole("Medico"))
+                {
+                    <li class="nav-item">
+                        <a asp-controller="Pacientes" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
+                            <i class="bi bi-people me-2"></i>
+                            <span class="sidebar-text">Pacientes</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+                {
+                    <li class="nav-item">
+                        <a asp-controller="Medicos" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <span class="sidebar-text">Médicos</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Medico") || User.IsInRole("Recepcionista"))
+                {
+                    <li class="nav-item">
+                        <a asp-controller="Calendario" asp-action="Index" class="nav-link text-white d-flex align-items-center px-3 py-2">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span class="sidebar-text">Calendario</span>
+                        </a>
+                    </li>
+                }
 
                 @if (User.IsInRole("Admin") || User.IsInRole("Recepcionista") || User.IsInRole("RecursosHumanos"))
                 {
