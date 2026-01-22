@@ -4,7 +4,10 @@ using Clinica.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,11 +50,16 @@ builder.Services.AddControllersWithViews(options =>
 
 var app = builder.Build();
 
-// Seed de roles y usuario administrador inicial
+// Inicializar base de datos (crear si no existe) + aplicar migraciones + seed de roles/usuario admin
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
+    EnsureDatabaseCreatedAndMigrated<ClinicaDbContext>(services, logger);
+    EnsureDatabaseCreatedAndMigrated<ApplicationDbContext>(services, logger);
+
+    // Seed de roles y usuario administrador inicial
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     SeedIdentity(roleManager, userManager);
@@ -91,6 +99,44 @@ app.MapGet("/Identity/Account/ForgotPassword", () => Results.NotFound());
 app.MapPost("/Identity/Account/ForgotPassword", () => Results.NotFound());
 
 app.Run();
+
+// Crea la base de datos si no existe (cuando el provider es relacional) y luego aplica migraciones.
+// Nota: si el servidor no es accesible o no hay permisos para crear DB, esto lanzará excepción.
+static void EnsureDatabaseCreatedAndMigrated<TContext>(IServiceProvider services, ILogger logger)
+    where TContext : DbContext
+{
+    var db = services.GetRequiredService<TContext>();
+
+    try
+    {
+        // Check explícito: existe la base?
+        var creator = db.Database.GetService<IRelationalDatabaseCreator>();
+        if (!creator.Exists())
+        {
+            logger.LogInformation("La base de datos para {DbContext} no existe. Creando...", typeof(TContext).Name);
+            creator.Create();
+        }
+
+        // Esto crea tablas/aplica cambios según migraciones pendientes (y también crea la DB si hiciera falta)
+        db.Database.Migrate();
+    }
+    catch (SqlException ex) when (
+        db.Database.IsSqlServer()
+        && (db.Database.GetConnectionString()?.Contains("(localdb)", StringComparison.OrdinalIgnoreCase) ?? false))
+    {
+        // Caso típico: la PC no tiene instalado SQL Server Express LocalDB / instancia MSSQLLocalDB
+        logger.LogError(ex, "No se pudo conectar a SQL Server LocalDB inicializando {DbContext}", typeof(TContext).Name);
+        throw new InvalidOperationException(
+            "No se pudo inicializar la base de datos porque SQL Server LocalDB no está disponible. " +
+            "Instalá 'SQL Server Express LocalDB' en esta computadora (o cambiá la cadena de conexión en appsettings.json).",
+            ex);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error inicializando la base de datos para {DbContext}", typeof(TContext).Name);
+        throw;
+    }
+}
 
 // Seed de roles y usuario admin (sincrónico para usar en Program.cs)
 static void SeedIdentity(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
