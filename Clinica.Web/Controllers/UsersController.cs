@@ -1,4 +1,5 @@
 using Clinica.Infrastructure.Data;
+using Clinica.Web.Data;
 using Clinica.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,40 +15,74 @@ public class UsersController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ClinicaDbContext _clinicaContext;
+    private readonly ApplicationDbContext _identityContext;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ClinicaDbContext clinicaContext)
+        ClinicaDbContext clinicaContext,
+        ApplicationDbContext identityContext)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _clinicaContext = clinicaContext;
+        _identityContext = identityContext;
     }
 
     // GET: /Users
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1)
     {
-        var users = await _userManager.Users.ToListAsync();
+        const int pageSize = 20;
+
+        IQueryable<ApplicationUser> usersQuery = _identityContext.Users
+            .AsNoTracking();
+
+        // RRHH no debe ver usuarios con rol Admin: lo filtramos a nivel query para que la paginación sea exacta.
+        if (!User.IsInRole("Admin"))
+        {
+            var adminRoleId = await _identityContext.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(adminRoleId))
+            {
+                usersQuery = usersQuery.Where(u =>
+                    !_identityContext.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId));
+            }
+        }
+
+        usersQuery = usersQuery.OrderBy(u => u.Email);
+
+        var totalCount = await usersQuery.CountAsync();
+        if (pageNumber < 1) pageNumber = 1;
+
+        var usersPage = await usersQuery
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        // Cargamos el nombre de médico solo para los usuarios de la página
+        var medicoIds = usersPage
+            .Where(u => u.MedicoId.HasValue)
+            .Select(u => u.MedicoId!.Value)
+            .Distinct()
+            .ToList();
+
         var medicos = await _clinicaContext.Medicos
             .AsNoTracking()
+            .Where(m => medicoIds.Contains(m.MedicoId))
             .ToDictionaryAsync(m => m.MedicoId, m => $"{m.Apellido} {m.Nombre}");
 
-        var model = new List<UserListViewModel>();
+        var items = new List<UserListViewModel>();
 
-        foreach (var user in users)
+        foreach (var user in usersPage)
         {
             var roles = await _userManager.GetRolesAsync(user);
 
-            // RRHH no debe ver usuarios con rol Admin
-            if (!User.IsInRole("Admin") && roles.Contains("Admin"))
-            {
-                continue;
-            }
-
             medicos.TryGetValue(user.MedicoId ?? 0, out var medicoNombre);
 
-            model.Add(new UserListViewModel
+            items.Add(new UserListViewModel
             {
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
@@ -57,6 +92,7 @@ public class UsersController : Controller
             });
         }
 
+        var model = new PaginatedList<UserListViewModel>(items, totalCount, pageNumber, pageSize);
         return View(model);
     }
 

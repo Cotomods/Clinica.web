@@ -22,8 +22,10 @@ public class PacientesController : Controller
 
     // GET: /Pacientes
     [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos,Medico")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1)
     {
+        const int pageSize = 20;
+
         IQueryable<Paciente> query = _context.Pacientes.AsNoTracking();
 
         // Si es médico, solo ve los pacientes asociados a sus consultas o turnos
@@ -58,7 +60,11 @@ public class PacientesController : Controller
             }
         }
 
-        var pacientes = await query.ToListAsync();
+        query = query
+            .OrderBy(p => p.Apellido)
+            .ThenBy(p => p.Nombre);
+
+        var pacientes = await PaginatedList<Paciente>.CreateAsync(query, pageNumber, pageSize);
         return View(pacientes);
     }
 

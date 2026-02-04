@@ -1,5 +1,6 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
+using Clinica.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,8 +20,10 @@ public class TurnosController : Controller
 
     // GET: /Turnos
     [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos")]
-    public async Task<IActionResult> Index(DateTime? fechaDesde, DateTime? fechaHasta, int? medicoId, int? pacienteId)
+    public async Task<IActionResult> Index(DateTime? fechaDesde, DateTime? fechaHasta, int? medicoId, int? pacienteId, int pageNumber = 1)
     {
+        const int pageSize = 20;
+
         var query = _context.Turnos
             .Include(t => t.Medico)
             .Include(t => t.Paciente)
@@ -49,9 +52,9 @@ public class TurnosController : Controller
             query = query.Where(t => t.PacienteId == pacienteId.Value);
         }
 
-        var turnos = await query
-            .OrderBy(t => t.FechaHoraInicio)
-            .ToListAsync();
+        query = query.OrderBy(t => t.FechaHoraInicio);
+
+        var turnos = await PaginatedList<Turno>.CreateAsync(query, pageNumber, pageSize);
 
         ViewBag.MedicoId = new SelectList(await _context.Medicos.AsNoTracking().ToListAsync(), "MedicoId", "Apellido", medicoId);
         ViewBag.PacienteId = new SelectList(await _context.Pacientes.AsNoTracking().ToListAsync(), "PacienteId", "Apellido", pacienteId);

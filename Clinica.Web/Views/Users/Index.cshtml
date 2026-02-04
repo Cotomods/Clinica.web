@@ -1,4 +1,4 @@
-@model IEnumerable<Clinica.Web.Models.UserListViewModel>
+@model Clinica.Web.Models.PaginatedList<Clinica.Web.Models.UserListViewModel>
 
 @{
     ViewData["Title"] = "Usuarios";
@@ -34,3 +34,32 @@
     }
     </tbody>
 </table>
+
+@if (Model.TotalPages > 1)
+{
+    var start = Math.Max(1, Model.PageIndex - 2);
+    var end = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+
+    <nav aria-label="Paginación usuarios">
+        <ul class="pagination">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">Anterior</a>
+            </li>
+
+            @for (var i = start; i <= end; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">Siguiente</a>
+            </li>
+
+            <li class="page-item disabled">
+                <span class="page-link">@Model.TotalCount registros</span>
+            </li>
+        </ul>
+    </nav>
+}

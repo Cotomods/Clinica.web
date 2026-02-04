@@ -1,4 +1,4 @@
-@model IEnumerable<Clinica.Domain.Entities.Turno>
+@model Clinica.Web.Models.PaginatedList<Clinica.Domain.Entities.Turno>
 
 @{
     ViewData["Title"] = "Turnos";
@@ -68,3 +68,50 @@
     }
     </tbody>
 </table>
+
+@if (Model.TotalPages > 1)
+{
+    var start = Math.Max(1, Model.PageIndex - 2);
+    var end = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+
+    <nav aria-label="Paginación turnos">
+        <ul class="pagination">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pageNumber="@(Model.PageIndex - 1)"
+                   asp-route-fechaDesde="@ViewBag.FechaDesde"
+                   asp-route-fechaHasta="@ViewBag.FechaHasta"
+                   asp-route-medicoId="@Context.Request.Query["medicoId"]"
+                   asp-route-pacienteId="@Context.Request.Query["pacienteId"]">Anterior</a>
+            </li>
+
+            @for (var i = start; i <= end; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-pageNumber="@i"
+                       asp-route-fechaDesde="@ViewBag.FechaDesde"
+                       asp-route-fechaHasta="@ViewBag.FechaHasta"
+                       asp-route-medicoId="@Context.Request.Query["medicoId"]"
+                       asp-route-pacienteId="@Context.Request.Query["pacienteId"]">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pageNumber="@(Model.PageIndex + 1)"
+                   asp-route-fechaDesde="@ViewBag.FechaDesde"
+                   asp-route-fechaHasta="@ViewBag.FechaHasta"
+                   asp-route-medicoId="@Context.Request.Query["medicoId"]"
+                   asp-route-pacienteId="@Context.Request.Query["pacienteId"]">Siguiente</a>
+            </li>
+
+            <li class="page-item disabled">
+                <span class="page-link">@Model.TotalCount registros</span>
+            </li>
+        </ul>
+    </nav>
+}

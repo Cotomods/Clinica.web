@@ -19,12 +19,18 @@ public class MedicosController : Controller
 
     // GET: /Medicos
     [Authorize(Roles = "Admin,RecursosHumanos")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1)
     {
-        var medicos = await _context.Medicos
+        const int pageSize = 20;
+
+        var query = _context.Medicos
             .Include(m => m.Especialidad)
             .AsNoTracking()
-            .ToListAsync();
+            .OrderBy(m => m.Apellido)
+            .ThenBy(m => m.Nombre)
+            .AsQueryable();
+
+        var medicos = await PaginatedList<Medico>.CreateAsync(query, pageNumber, pageSize);
         return View(medicos);
     }
 
