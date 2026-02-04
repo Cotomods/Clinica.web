@@ -9,6 +9,8 @@
 <h1>Editar usuario</h1>
 
 <form asp-action="Edit" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
@@ -17,11 +19,12 @@
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <div class="mb-3" id="medico-container">
+    <div class="mb-3" id="medico-container" style="display:none;">
         <label class="form-label">Médico (opcional)</label>
         <select asp-for="MedicoId" class="form-select" asp-items="ViewBag.MedicoId">
             <option value="">(Sin médico asociado)</option>
         </select>
+        <span asp-validation-for="MedicoId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
@@ -36,6 +39,7 @@
                 </div>
             }
         </div>
+        <span asp-validation-for="SelectedRoles" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -47,21 +51,35 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const medicoContainer = document.getElementById('medico-container');
-            const medicoCheckbox = document.getElementById('role_Medico');
+            const medicoSelect = document.getElementById('MedicoId');
+
+            function selectedRole() {
+                const checked = document.querySelector('input[name="SelectedRoles"]:checked');
+                return checked ? checked.value : null;
+            }
 
             function updateMedicoVisibility() {
-                if (medicoCheckbox && medicoCheckbox.checked) {
+                const role = selectedRole();
+                const isMedico = role && role.toLowerCase() === 'medico';
+
+                if (isMedico) {
                     medicoContainer.style.display = '';
                 } else {
                     medicoContainer.style.display = 'none';
+                    if (medicoSelect) {
+                        medicoSelect.value = '';
+                        if ($(medicoSelect).closest('form').data('validator')) {
+                            $(medicoSelect).valid();
+                        }
+                    }
                 }
             }
 
             updateMedicoVisibility();
 
-            if (medicoCheckbox) {
-                medicoCheckbox.addEventListener('change', updateMedicoVisibility);
-            }
+            document.querySelectorAll('input[name="SelectedRoles"]').forEach(function (el) {
+                el.addEventListener('change', updateMedicoVisibility);
+            });
         });
     </script>
 }

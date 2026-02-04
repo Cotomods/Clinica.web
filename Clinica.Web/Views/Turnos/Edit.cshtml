@@ -7,6 +7,8 @@
 <h1>Editar turno</h1>
 
 <form asp-action="Edit" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
     <input type="hidden" asp-for="TurnoId" />
 
     <div class="mb-3">

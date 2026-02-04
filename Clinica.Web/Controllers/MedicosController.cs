@@ -90,10 +90,10 @@ public class MedicosController : Controller
         {
             MedicoId = medico.MedicoId,
             MedicoNombre = $"{medico.Apellido} {medico.Nombre}",
-            Fecha = DateTime.Today,
-            HoraInicio = new TimeSpan(9, 0, 0),
-            HoraFin = new TimeSpan(12, 0, 0),
-            DuracionMinutos = 30
+            FechaDesde = DateTime.Today,
+            FechaHasta = DateTime.Today.AddDays(14),
+            DuracionMinutos = 30,
+            HorariosPorDia = BuildDefaultHorariosPorDia()
         };
 
         return View(vm);
@@ -111,55 +111,155 @@ public class MedicosController : Controller
             return NotFound();
         }
 
-        if (model.HoraFin <= model.HoraInicio || model.DuracionMinutos <= 0)
-        {
-            ModelState.AddModelError(string.Empty, "Rango horario o duración inválidos.");
-        }
-
         if (!ModelState.IsValid)
         {
             model.MedicoNombre = $"{medico.Apellido} {medico.Nombre}";
+            model.HorariosPorDia = NormalizeHorariosPorDia(model.HorariosPorDia);
             return View(model);
         }
 
-        var inicio = model.Fecha.Date + model.HoraInicio;
-        var fin = model.Fecha.Date + model.HoraFin;
+        // Seguridad extra: no permitir generar en fechas pasadas (además de la validación del ViewModel)
+        if (model.FechaDesde.Date < DateTime.Today)
+        {
+            ModelState.AddModelError(nameof(model.FechaDesde), "No se pueden generar turnos en fechas pasadas.");
+            model.MedicoNombre = $"{medico.Apellido} {medico.Nombre}";
+            model.HorariosPorDia = NormalizeHorariosPorDia(model.HorariosPorDia);
+            return View(model);
+        }
 
-        // Obtenemos los horarios ya existentes para ese médico en ese día
+        var desde = model.FechaDesde.Date;
+        var hasta = model.FechaHasta.Date;
+        var endExclusive = hasta.AddDays(1);
+
+        var horariosPorDia = NormalizeHorariosPorDia(model.HorariosPorDia)
+            .Where(h => h.Atiende)
+            .ToDictionary(h => h.Dia, h => h);
+
+        // Obtenemos los horarios ya existentes para ese médico en el rango completo
         var existentes = await _context.Turnos
-            .Where(t => t.MedicoId == medico.MedicoId && t.FechaHoraInicio.Date == model.Fecha.Date)
+            .Where(t => t.MedicoId == medico.MedicoId && t.FechaHoraInicio >= desde && t.FechaHoraInicio < endExclusive)
             .Select(t => t.FechaHoraInicio)
             .ToListAsync();
 
+        var existentesSet = existentes.ToHashSet();
+
         var turnos = new List<Turno>();
-        for (var actual = inicio; actual < fin; actual = actual.AddMinutes(model.DuracionMinutos))
+        var now = DateTime.Now;
+
+        for (var fecha = desde; fecha <= hasta; fecha = fecha.AddDays(1))
         {
-            // Si ya existe un turno con este horario, lo saltamos
-            if (existentes.Contains(actual))
+            if (!horariosPorDia.TryGetValue(fecha.DayOfWeek, out var h))
             {
                 continue;
             }
 
-            var turno = new Turno
+            // Si el día está marcado como atención, pero faltan horas (por seguridad)
+            if (!h.HoraInicio.HasValue || !h.HoraFin.HasValue)
             {
-                MedicoId = medico.MedicoId,
-                PacienteId = null,
-                FechaHoraInicio = actual,
-                FechaHoraFin = actual.AddMinutes(model.DuracionMinutos),
-                Estado = EstadoTurno.Reservado,
-                MotivoConsulta = "Disponible"
-            };
+                continue;
+            }
 
-            turnos.Add(turno);
+            var inicioDia = fecha.Date + h.HoraInicio.Value;
+            var finDia = fecha.Date + h.HoraFin.Value;
+
+            for (var actual = inicioDia; actual < finDia; actual = actual.AddMinutes(model.DuracionMinutos))
+            {
+                // No crear turnos en el pasado
+                if (actual < now)
+                {
+                    continue;
+                }
+
+                // Si ya existe un turno con este horario, lo saltamos
+                if (existentesSet.Contains(actual))
+                {
+                    continue;
+                }
+
+                var turno = new Turno
+                {
+                    MedicoId = medico.MedicoId,
+                    PacienteId = null,
+                    FechaHoraInicio = actual,
+                    FechaHoraFin = actual.AddMinutes(model.DuracionMinutos),
+                    Estado = EstadoTurno.Reservado,
+                    MotivoConsulta = "Disponible"
+                };
+
+                turnos.Add(turno);
+                existentesSet.Add(actual); // evita duplicados dentro de la misma corrida
+            }
         }
 
-        if (turnos.Count > 0)
+        if (turnos.Count == 0)
         {
-            _context.Turnos.AddRange(turnos);
-            await _context.SaveChangesAsync();
+            ModelState.AddModelError(string.Empty,
+                "No hay turnos para generar en el rango seleccionado (todos están en el pasado, no coinciden con los días configurados o ya existen)."
+            );
+            model.MedicoNombre = $"{medico.Apellido} {medico.Nombre}";
+            model.HorariosPorDia = NormalizeHorariosPorDia(model.HorariosPorDia);
+            return View(model);
         }
+
+        _context.Turnos.AddRange(turnos);
+        await _context.SaveChangesAsync();
 
         // Redirigir al calendario de turnos luego de generar la agenda
         return RedirectToAction("Index", "Calendario");
+    }
+
+    private static List<DiaAtencionHorarioViewModel> BuildDefaultHorariosPorDia()
+    {
+        return new List<DiaAtencionHorarioViewModel>
+        {
+            new() { Dia = DayOfWeek.Monday, Atiende = true, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Tuesday, Atiende = true, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Wednesday, Atiende = true, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Thursday, Atiende = true, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Friday, Atiende = true, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Saturday, Atiende = false, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+            new() { Dia = DayOfWeek.Sunday, Atiende = false, HoraInicio = new TimeSpan(9, 0, 0), HoraFin = new TimeSpan(12, 0, 0) },
+        };
+    }
+
+    private static List<DiaAtencionHorarioViewModel> NormalizeHorariosPorDia(List<DiaAtencionHorarioViewModel>? items)
+    {
+        // Garantiza que existan los 7 días, en orden fijo, para que la vista siempre renderice igual.
+        var baseList = items ?? new List<DiaAtencionHorarioViewModel>();
+        var dict = baseList
+            .GroupBy(i => i.Dia)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var ordered = new[]
+        {
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Thursday,
+            DayOfWeek.Friday,
+            DayOfWeek.Saturday,
+            DayOfWeek.Sunday
+        };
+
+        var result = new List<DiaAtencionHorarioViewModel>();
+        foreach (var d in ordered)
+        {
+            if (dict.TryGetValue(d, out var item))
+            {
+                result.Add(item);
+            }
+            else
+            {
+                result.Add(new DiaAtencionHorarioViewModel
+                {
+                    Dia = d,
+                    Atiende = d is >= DayOfWeek.Monday and <= DayOfWeek.Friday,
+                    HoraInicio = new TimeSpan(9, 0, 0),
+                    HoraFin = new TimeSpan(12, 0, 0)
+                });
+            }
+        }
+
+        return result;
     }
 }

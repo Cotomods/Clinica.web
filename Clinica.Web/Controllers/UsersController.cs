@@ -90,7 +90,20 @@ public class UsersController : Controller
         {
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                // Mostrar el error debajo del campo correspondiente cuando sea posible
+                if (error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(nameof(model.Password), error.Description);
+                }
+                else if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(nameof(model.Email), error.Description);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             await LoadRolesAndMedicosAsync();
@@ -194,7 +207,15 @@ public class UsersController : Controller
         {
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(nameof(model.Email), error.Description);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             await LoadRolesAndMedicosAsync(model.MedicoId, model.SelectedRoles);

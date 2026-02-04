@@ -87,7 +87,36 @@ public class TurnosController : Controller
             return BadRequest();
         }
 
-        if (!ModelState.IsValid)
+        // No permitir establecer/crear horarios de turno en el pasado.
+        // Permitimos editar otros campos de un turno ya pasado, siempre que no se cambie su horario.
+        var existing = await _context.Turnos
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.TurnoId == id);
+
+        if (existing == null)
+        {
+            return NotFound();
+        }
+
+        var cambioHorario = existing.FechaHoraInicio != turno.FechaHoraInicio
+                           || existing.FechaHoraFin != turno.FechaHoraFin;
+
+        if (cambioHorario)
+        {
+            var now = DateTime.Now;
+
+            if (turno.FechaHoraInicio < now)
+            {
+                ModelState.AddModelError(nameof(Turno.FechaHoraInicio), "No se puede establecer un turno en el pasado.");
+            }
+
+            if (turno.FechaHoraFin < now)
+            {
+                ModelState.AddModelError(nameof(Turno.FechaHoraFin), "No se puede establecer un turno en el pasado.");
+            }
+        }
+
+        if (!ModelState.IsValid)
         {
             await LoadCombosAsync(turno.MedicoId, turno.PacienteId);
             return View(turno);
