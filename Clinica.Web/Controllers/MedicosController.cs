@@ -19,16 +19,25 @@ public class MedicosController : Controller
 
     // GET: /Medicos
     [Authorize(Roles = "Admin,RecursosHumanos")]
-    public async Task<IActionResult> Index(int pageNumber = 1)
+    public async Task<IActionResult> Index(string? searchTerm, int pageNumber = 1)
     {
         const int pageSize = 20;
+        ViewData["CurrentFilter"] = searchTerm;
 
         var query = _context.Medicos
             .Include(m => m.Especialidad)
             .AsNoTracking()
-            .OrderBy(m => m.Apellido)
-            .ThenBy(m => m.Nombre)
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            searchTerm = searchTerm.Trim();
+            query = query.Where(m => m.Apellido.Contains(searchTerm) || (m.Especialidad != null && m.Especialidad.Nombre.Contains(searchTerm)));
+        }
+
+        query = query
+            .OrderBy(m => m.Apellido)
+            .ThenBy(m => m.Nombre);
 
         var medicos = await PaginatedList<Medico>.CreateAsync(query, pageNumber, pageSize);
         return View(medicos);

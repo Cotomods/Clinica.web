@@ -61,6 +61,9 @@ using (var scope = app.Services.CreateScope())
     EnsureDatabaseCreatedAndMigrated<ClinicaDbContext>(services, logger);
     EnsureDatabaseCreatedAndMigrated<ApplicationDbContext>(services, logger);
 
+    // Seed de datos maestros y de prueba para ClinicaDbContext
+    DbInitializer.SeedData(services.GetRequiredService<ClinicaDbContext>());
+
     // Seed de roles y usuario administrador inicial
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();

@@ -22,11 +22,18 @@ public class PacientesController : Controller
 
     // GET: /Pacientes
     [Authorize(Roles = "Admin,Recepcionista,RecursosHumanos,Medico")]
-    public async Task<IActionResult> Index(int pageNumber = 1)
+    public async Task<IActionResult> Index(string? searchTerm, int pageNumber = 1)
     {
         const int pageSize = 20;
+        ViewData["CurrentFilter"] = searchTerm;
 
         IQueryable<Paciente> query = _context.Pacientes.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            searchTerm = searchTerm.Trim();
+            query = query.Where(p => p.Apellido.Contains(searchTerm) || (p.Email != null && p.Email.Contains(searchTerm)));
+        }
 
         // Si es médico, solo ve los pacientes asociados a sus consultas o turnos
         if (User.IsInRole("Medico"))
@@ -70,8 +77,11 @@ public class PacientesController : Controller
 
     // GET: /Pacientes/Create
     [Authorize(Roles = "Admin,Recepcionista")]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(), 
+            "ObraSocialId", "Nombre");
         return View();
     }
 
@@ -101,6 +111,9 @@ public class PacientesController : Controller
             return NotFound();
         }
 
+        ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(), 
+            "ObraSocialId", "Nombre", paciente.ObraSocialId);
         return View(paciente);
     }
 
@@ -175,8 +188,10 @@ public class PacientesController : Controller
         int id,
         DateTime? fechaDesde,
         DateTime? fechaHasta,
-        int? medicoId)
+        int? medicoId,
+        int pageNumber = 1)
     {
+        const int pageSize = 10;
         var paciente = await _context.Pacientes
             .FirstOrDefaultAsync(p => p.PacienteId == id);
 
@@ -220,8 +235,11 @@ public class PacientesController : Controller
             query = query.Where(c => c.MedicoId == medicoId.Value);
         }
 
+        var totalItems = await query.CountAsync();
         var consultas = await query
             .OrderByDescending(c => c.FechaConsulta)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         var medicos = await _context.Medicos
@@ -240,7 +258,10 @@ public class PacientesController : Controller
             {
                 Value = m.MedicoId.ToString(),
                 Text = $"{m.Apellido} {m.Nombre}"
-            })
+            }),
+            PageIndex = pageNumber,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+            TotalCount = totalItems
         };
 
         return View(vm);

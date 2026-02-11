@@ -19,15 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var darkToggle = document.getElementById("darkModeToggle");
     if (darkToggle) {
-        // Inicializar desde localStorage
-        var darkEnabled = localStorage.getItem("darkMode") === "true";
-        if (darkEnabled) {
-            document.body.classList.add("dark-mode");
-        }
-
         darkToggle.addEventListener("click", function () {
-            document.body.classList.toggle("dark-mode");
-            var enabled = document.body.classList.contains("dark-mode");
+            document.documentElement.classList.toggle("dark-mode");
+            var enabled = document.documentElement.classList.contains("dark-mode");
             localStorage.setItem("darkMode", enabled ? "true" : "false");
         });
     }

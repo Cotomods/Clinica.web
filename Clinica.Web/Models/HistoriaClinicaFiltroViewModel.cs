@@ -20,6 +20,12 @@ public class HistoriaClinicaFiltroViewModel
 
     [Display(Name = "Médico")]
     public int? MedicoId { get; set; }
-
     public IEnumerable<SelectListItem> Medicos { get; set; } = Enumerable.Empty<SelectListItem>();
+
+    // Pagination support
+    public int PageIndex { get; set; }
+    public int TotalPages { get; set; }
+    public int TotalCount { get; set; }
+    public bool HasPreviousPage => PageIndex > 1;
+    public bool HasNextPage => PageIndex < TotalPages;
 }

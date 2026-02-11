@@ -150,7 +150,17 @@ public class CalendarioController : Controller
             FechaHora = turno.FechaHoraInicio
         };
 
-        ViewData["PacienteId"] = new SelectList(await _context.Pacientes.AsNoTracking().ToListAsync(), "PacienteId", "Apellido");
+        var pacientes = await _context.Pacientes
+            .AsNoTracking()
+            .OrderBy(p => p.Apellido)
+            .ThenBy(p => p.Nombre)
+            .Select(p => new {
+                p.PacienteId,
+                NombreCompleto = $"{p.Apellido} {p.Nombre}"
+            })
+            .ToListAsync();
+
+        ViewData["PacienteId"] = new SelectList(pacientes, "PacienteId", "NombreCompleto");
         return View(model);
     }
 
@@ -177,7 +187,17 @@ public class CalendarioController : Controller
 
         if (!ModelState.IsValid)
         {
-            ViewData["PacienteId"] = new SelectList(_context.Pacientes, "PacienteId", "Apellido", model.PacienteId);
+            var pacientes = await _context.Pacientes
+                .AsNoTracking()
+                .OrderBy(p => p.Apellido)
+                .ThenBy(p => p.Nombre)
+                .Select(p => new {
+                    p.PacienteId,
+                    NombreCompleto = $"{p.Apellido} {p.Nombre}"
+                })
+                .ToListAsync();
+
+            ViewData["PacienteId"] = new SelectList(pacientes, "PacienteId", "NombreCompleto", model.PacienteId);
             model.MedicoNombre = $"{turno.Medico.Apellido} {turno.Medico.Nombre}";
             model.FechaHora = turno.FechaHoraInicio;
             return View(model);

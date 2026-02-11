@@ -6,9 +6,18 @@
 
 <h1>Usuarios</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Nuevo usuario</a>
-</p>
+<div class="row mb-3 mt-3">
+    <div class="col-md-6">
+        <a asp-action="Create" class="btn btn-primary">Nuevo usuario</a>
+    </div>
+    <div class="col-md-6">
+        <form asp-action="Index" method="get" class="d-flex" id="searchForm">
+            <input type="text" name="searchTerm" id="searchInput" value="@ViewData["CurrentFilter"]" class="form-control me-2" placeholder="Buscar por email..." autocomplete="off" />
+            <button type="submit" class="btn btn-secondary me-2">Buscar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </form>
+    </div>
+</div>
 
 <table class="table table-striped">
     <thead>
@@ -43,18 +52,24 @@
     <nav aria-label="Paginación usuarios">
         <ul class="pagination">
             <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">Anterior</a>
+                <a class="page-link" asp-action="Index" 
+                   asp-route-pageNumber="@(Model.PageIndex - 1)" 
+                   asp-route-searchTerm="@ViewData["CurrentFilter"]">Anterior</a>
             </li>
 
             @for (var i = start; i <= end; i++)
             {
                 <li class="page-item @(i == Model.PageIndex ? "active" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">@i</a>
+                    <a class="page-link" asp-action="Index" 
+                       asp-route-pageNumber="@i" 
+                       asp-route-searchTerm="@ViewData["CurrentFilter"]">@i</a>
                 </li>
             }
 
             <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">Siguiente</a>
+                <a class="page-link" asp-action="Index" 
+                   asp-route-pageNumber="@(Model.PageIndex + 1)" 
+                   asp-route-searchTerm="@ViewData["CurrentFilter"]">Siguiente</a>
             </li>
 
             <li class="page-item disabled">
@@ -62,4 +77,28 @@
             </li>
         </ul>
     </nav>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("searchInput");
+            const searchForm = document.getElementById("searchForm");
+            let timeout = null;
+
+            if (searchInput && searchForm) {
+                searchInput.addEventListener("input", function () {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function () {
+                        searchForm.submit();
+                    }, 500); // 500ms debounce
+                });
+
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.focus();
+                searchInput.value = val;
+            }
+        });
+    </script>
 }

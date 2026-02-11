@@ -71,4 +71,51 @@ else
         }
         </tbody>
     </table>
+
+    @if (Model.TotalPages > 1)
+    {
+        var start = Math.Max(1, Model.PageIndex - 2);
+        var end = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+
+        <nav aria-label="Paginación historia clínica" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link"
+                       asp-action="HistoriaClinica"
+                       asp-route-id="@Model.Paciente.PacienteId"
+                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                       asp-route-fechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+                       asp-route-fechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")"
+                       asp-route-medicoId="@Model.MedicoId">Anterior</a>
+                </li>
+
+                @for (var i = start; i <= end; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="HistoriaClinica"
+                           asp-route-id="@Model.Paciente.PacienteId"
+                           asp-route-pageNumber="@i"
+                           asp-route-fechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+                           asp-route-fechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")"
+                           asp-route-medicoId="@Model.MedicoId">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                    <a class="page-link"
+                       asp-action="HistoriaClinica"
+                       asp-route-id="@Model.Paciente.PacienteId"
+                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                       asp-route-fechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+                       asp-route-fechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")"
+                       asp-route-medicoId="@Model.MedicoId">Siguiente</a>
+                </li>
+
+                <li class="page-item disabled">
+                    <span class="page-link">@Model.TotalCount registros</span>
+                </li>
+            </ul>
+        </nav>
+    }
 }

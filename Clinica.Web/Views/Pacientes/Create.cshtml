@@ -21,7 +21,16 @@
     </div>
     <div class="mb-3">
         <label asp-for="TipoDocumento" class="form-label"></label>
-        <input asp-for="TipoDocumento" class="form-control" />
+        <select asp-for="TipoDocumento" class="form-select">
+            <option value="">-- Seleccionar --</option>
+            <option value="DNI">DNI (Documento Nacional de Identidad)</option>
+            <option value="CUIL_CUIT">Laboral/Tributario - CUIL / CUIT</option>
+            <option value="PAS">Viajeros / Extranjeros - Pasaporte</option>
+            <option value="CI">Regional - Cédula de Identidad (Mercosur)</option>
+            <option value="LE">Históricos (Mayores) - Libreta de Enrolamiento</option>
+            <option value="LC">Históricos (Mayores) - Libreta Cívica</option>
+            <option value="PRE">En trámite - Residencia Precaria</option>
+        </select>
         <span asp-validation-for="TipoDocumento" class="text-danger"></span>
     </div>
     <div class="mb-3">
@@ -48,6 +57,13 @@
         <label asp-for="Direccion" class="form-label"></label>
         <input asp-for="Direccion" class="form-control" />
         <span asp-validation-for="Direccion" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ObraSocialId" class="form-label">Obra Social</label>
+        <select asp-for="ObraSocialId" class="form-select" asp-items="ViewBag.ObraSocialId">
+            <option value="">-- Particular / Sin Obra Social --</option>
+        </select>
+        <span asp-validation-for="ObraSocialId" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>

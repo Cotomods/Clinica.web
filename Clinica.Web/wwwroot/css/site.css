@@ -1,3 +1,31 @@
+:root {
+  /* Light Mode (Defaults) */
+  --bg-body: #f8f9fa;
+  --bg-surface: #ffffff;
+  --bg-sidebar: #212529;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --table-border: #dee2e6;
+  --input-bg: #ffffff;
+  --input-text: #212529;
+  --accent-primary: #0d6efd;
+}
+
+.dark-mode {
+  /* Dark Mode Premium Palette */
+  --bg-body: #0f111a;
+  --bg-surface: #1a1d2e;
+  --bg-sidebar: #131521;
+  --text-primary: #e6e9ef;
+  --text-secondary: #b0b7c3;
+  --border-color: #2d324d;
+  --table-border: #2d324d;
+  --input-bg: #131521;
+  --input-text: #e6e9ef;
+  --accent-primary: #3d8bff;
+}
+
 html {
   font-size: 14px;
 }
@@ -8,30 +36,34 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+html,
 body {
-  margin-bottom: 0;
-  overflow-x: hidden;
+  height: 100%;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem var(--bg-surface), 0 0 0 0.25rem var(--accent-primary);
 }
 
 /* Sidebar layout */
 .sidebar {
   width: 64px;
   min-height: 100vh;
-  transition: width 0.2s ease;
+  transition: width 0.2s ease, background-color 0.2s ease;
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   z-index: 1030;
+  background-color: var(--bg-sidebar) !important;
+  border-right: 1px solid var(--border-color);
 }
 
 body.sidebar-expanded .sidebar {
@@ -41,14 +73,14 @@ body.sidebar-expanded .sidebar {
 .main-content {
   transition: padding-left 0.2s ease;
   padding-left: 64px;
+  background-color: var(--bg-body);
+  min-height: 100vh;
 }
 
-/* Ajustar contenido principal según ancho de sidebar */
 body.sidebar-expanded .main-content {
   padding-left: 220px;
 }
 
-/* Mostrar/ocultar textos según estado */
 .sidebar .sidebar-text,
 .sidebar .sidebar-brand-text {
   display: none;
@@ -59,7 +91,6 @@ body.sidebar-expanded .sidebar .sidebar-brand-text {
   display: inline;
 }
 
-/* Alinear iconos al centro cuando está colapsado */
 body.sidebar-collapsed .sidebar .nav-link {
   justify-content: center;
 }
@@ -68,108 +99,244 @@ body.sidebar-expanded .sidebar .nav-link {
   justify-content: flex-start;
 }
 
-/* Dark mode */
-body.dark-mode {
-  background-color: #121212;
-  color: #f8f9fa;
+/* Layout Components */
+header {
+  background-color: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-primary);
 }
 
-/* Corregir header/footer (override de bg-white de Bootstrap) */
-body.dark-mode .main-content header,
-body.dark-mode .main-content footer,
-body.dark-mode .bg-white {
-  background-color: #1e1e1e !important;
-  color: #f8f9fa;
+footer {
+  background-color: var(--bg-surface) !important;
+  border-top: 1px solid var(--border-color) !important;
+  color: var(--text-secondary);
 }
 
-/* Tarjetas y contenedores */
-body.dark-mode .main-content .card,
-body.dark-mode .card {
-  background-color: #1e1e1e;
-  color: #f8f9fa;
-  border-color: #343a40;
+/* Cards */
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Tablas */
-body.dark-mode .table {
-  color: #f8f9fa;
+.card-header {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--border-color);
 }
 
-body.dark-mode .table thead {
-  background-color: #1e1e1e;
+.dark-mode .card-header {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Tablas: forzar modo oscuro incluso con clases Bootstrap */
-body.dark-mode table.table,
-body.dark-mode table.table th,
-body.dark-mode table.table td {
-  background-color: #121212 !important;
-  color: #f8f9fa !important;
+/* Tables */
+.table {
+  color: var(--text-primary);
+  border-color: var(--table-border);
 }
 
-/* Filas de tablas stripadas */
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
-  background-color: #181818 !important;
+.table thead th {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--table-border);
+  font-weight: 600;
 }
 
-body.dark-mode .table-striped > tbody > tr:nth-of-type(even) > * {
-  background-color: #151515 !important;
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
-body.dark-mode .table > :not(caption) > * > * {
-  border-color: #343a40;
+.dark-mode .table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table-striped>tbody>tr:nth-of-type(even)>* {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table td,
+.dark-mode .table th {
+  color: var(--text-primary) !important;
+}
+
+.table-hover tbody tr:hover td {
+  background-color: rgba(var(--accent-primary), 0.1) !important;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--input-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--accent-primary);
+}
+
+.form-control::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Utility overrides for Dark Mode */
+.dark-mode .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+.dark-mode .text-dark {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* Sidebar Specifics */
+.sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.7) !important;
+  border-radius: 8px;
+  margin: 0 8px;
+  transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
+}
+
+.dark-mode .sidebar .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .sidebar .nav-link:hover,
+.dark-mode .sidebar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary) !important;
 }
 
 /* Links */
-body.dark-mode a {
-  color: #9fcdff;
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
 }
 
-/* Texto utilitario que puede quedar ilegible */
-body.dark-mode .text-muted {
-  color: #ced4da !important;
+a:hover {
+  text-decoration: underline;
 }
 
-body.dark-mode .text-dark {
-  color: #f8f9fa !important;
+/* Custom UI refinements */
+.breadcrumb-item.active {
+  color: var(--text-secondary);
 }
 
-/* Campos de formulario */
-body.dark-mode .form-control,
-body.dark-mode .form-select,
-body.dark-mode .form-control:focus,
-body.dark-mode .form-select:focus {
-  background-color: #1e1e1e;
-  color: #f8f9fa;
-  border-color: #495057;
+.form-floating>label {
+  color: var(--text-secondary);
 }
 
-body.dark-mode .form-control::placeholder {
-  color: #adb5bd;
+.dark-mode .btn-outline-primary {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
-/* Botones outline más legibles en oscuro */
-body.dark-mode .btn-outline-primary {
-  color: #9fcdff;
-  border-color: #9fcdff;
+.dark-mode .btn-outline-primary:hover {
+  background-color: var(--accent-primary);
+  color: #fff;
 }
 
-body.dark-mode .btn-outline-primary:hover {
-  background-color: #9fcdff;
-  color: #121212;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
-/* Ocultar enlaces de registro y "olvidé mi contraseña" en la página de login de Identity */
+/* Ocultar enlaces de registro de Identity */
 a[href*="/Account/Register"],
 a[href*="/Account/ForgotPassword"] {
   display: none !important;
+}
+
+/* Specific component refinements for Dark Mode */
+.dark-mode .table-bordered,
+.dark-mode .table-bordered td,
+.dark-mode .table-bordered th {
+  border-color: var(--table-border) !important;
+  background-color: var(--bg-surface) !important;
+  color: #ffffff !important;
+}
+
+/* Override bg-light for calendar day highlights */
+.dark-mode .bg-light {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Badge refinements for dark mode legibility */
+.dark-mode .badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.dark-mode .badge.bg-warning {
+  background-color: #ffd33d !important;
+  color: #1a1d2e !important;
+}
+
+.dark-mode .badge.bg-info {
+  background-color: #79c0ff !important;
+  color: #1a1d2e !important;
+}
+
+.dark-mode .badge.bg-success {
+  background-color: #3fb950 !important;
+}
+
+.dark-mode .badge.bg-secondary {
+  background-color: #484f58 !important;
+}
+
+/* Native Calendar/Date/Time Input Refinements */
+.dark-mode input[type="date"]::-webkit-calendar-picker-indicator,
+.dark-mode input[type="month"]::-webkit-calendar-picker-indicator,
+.dark-mode input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* Ensure data tables in dark mode have dark backgrounds and white text */
+.dark-mode .table td,
+.dark-mode .table th {
+  background-color: var(--bg-surface) !important;
+  color: #ffffff !important;
+}
+
+/* Maintain striping but with higher contrast in dark mode */
+.dark-mode .table-striped>tbody>tr:nth-of-type(even)>* {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Pagination Dark Mode Refinement */
+.dark-mode .page-link {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: #ffffff !important;
+}
+
+.dark-mode .page-link:hover {
+  background-color: #2d324d;
+  border-color: var(--accent-primary);
+  color: #ffffff !important;
+}
+
+.dark-mode .page-item.active .page-link {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.dark-mode .page-item.disabled .page-link {
+  background-color: var(--bg-body);
+  border-color: var(--border-color);
+  color: rgba(255, 255, 255, 0.3) !important;
 }

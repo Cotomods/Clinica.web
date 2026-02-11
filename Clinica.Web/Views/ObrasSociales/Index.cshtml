@@ -1,0 +1,67 @@
+@model Clinica.Web.Models.PaginatedList<Clinica.Domain.Entities.ObraSocial>
+
+@{
+    ViewData["Title"] = "Obras Sociales";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Obras Sociales</h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nueva Obra Social
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Nombre</th>
+                        <th>Código</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No hay obras sociales registradas.</td>
+                        </tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4"><strong>@item.Nombre</strong></td>
+                            <td>@item.Codigo</td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Edit" asp-route-id="@item.ObraSocialId" class="btn btn-sm btn-outline-primary me-2">Editar</a>
+                                <a asp-action="Delete" asp-route-id="@item.ObraSocialId" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Navegación de páginas" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">Anterior</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}

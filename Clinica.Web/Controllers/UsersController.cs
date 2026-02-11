@@ -30,12 +30,19 @@ public class UsersController : Controller
     }
 
     // GET: /Users
-    public async Task<IActionResult> Index(int pageNumber = 1)
+    public async Task<IActionResult> Index(string? searchTerm, int pageNumber = 1)
     {
         const int pageSize = 20;
+        ViewData["CurrentFilter"] = searchTerm;
 
         IQueryable<ApplicationUser> usersQuery = _identityContext.Users
             .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            searchTerm = searchTerm.Trim();
+            usersQuery = usersQuery.Where(u => u.Email != null && u.Email.Contains(searchTerm));
+        }
 
         // RRHH no debe ver usuarios con rol Admin: lo filtramos a nivel query para que la paginación sea exacta.
         if (!User.IsInRole("Admin"))
