@@ -369,7 +369,7 @@ public class MedicosController : Controller
                     PacienteId = null,
                     FechaHoraInicio = actual,
                     FechaHoraFin = actual.AddMinutes(model.DuracionMinutos),
-                    Estado = EstadoTurno.Reservado,
+                    Estado = EstadoTurno.Disponible,
                     MotivoConsulta = "Disponible"
                 };
 

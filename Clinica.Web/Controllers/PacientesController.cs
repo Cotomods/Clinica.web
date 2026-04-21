@@ -32,7 +32,12 @@ public class PacientesController : Controller
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             searchTerm = searchTerm.Trim();
-            query = query.Where(p => p.Apellido.Contains(searchTerm) || (p.Email != null && p.Email.Contains(searchTerm)));
+            query = query.Where(p =>
+                p.Apellido.Contains(searchTerm)
+                || p.Nombre.Contains(searchTerm)
+                || (p.NumeroDocumento != null && p.NumeroDocumento.Contains(searchTerm))
+                || (p.NumeroHistoriaClinica != null && p.NumeroHistoriaClinica.Contains(searchTerm))
+                || (p.Email != null && p.Email.Contains(searchTerm)));
         }
 
         // Si es médico, solo ve los pacientes asociados a sus consultas o turnos
@@ -93,6 +98,9 @@ public class PacientesController : Controller
     {
         if (!ModelState.IsValid)
         {
+            ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(),
+                "ObraSocialId", "Nombre");
             return View(paciente);
         }
 
@@ -130,6 +138,9 @@ public class PacientesController : Controller
 
         if (!ModelState.IsValid)
         {
+            ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(),
+                "ObraSocialId", "Nombre", paciente.ObraSocialId);
             return View(paciente);
         }
 

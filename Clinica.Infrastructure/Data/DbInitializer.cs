@@ -61,7 +61,7 @@ public static class DbInitializer
                 {
                     Nombre = nombres[random.Next(nombres.Length)],
                     Apellido = apellidos[random.Next(apellidos.Length)],
-                    Matricula = $"M{random.Next(10000, 99999)}",
+                    Matricula = $"M{i:D5}",
                     EspecialidadId = espIds[random.Next(espIds.Count)]
                 });
             }

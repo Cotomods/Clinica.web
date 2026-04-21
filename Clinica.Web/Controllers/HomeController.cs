@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,11 +13,13 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly ClinicaDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public HomeController(ILogger<HomeController> logger, ClinicaDbContext context)
+    public HomeController(ILogger<HomeController> logger, ClinicaDbContext context, UserManager<ApplicationUser> userManager)
     {
         _logger = logger;
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task<IActionResult> Index()
@@ -31,6 +34,21 @@ public class HomeController : Controller
             .Include(t => t.Medico)
             .AsNoTracking()
             .Where(t => t.FechaHoraInicio.Date == hoy);
+
+        // Si es médico, filtrar solo sus turnos
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId != null)
+            {
+                var mid = user.MedicoId.Value;
+                turnosHoyQuery = turnosHoyQuery.Where(t => t.MedicoId == mid);
+            }
+            else
+            {
+                turnosHoyQuery = turnosHoyQuery.Where(t => false);
+            }
+        }
 
         var turnosHoy = await turnosHoyQuery
             .OrderBy(t => t.FechaHoraInicio)

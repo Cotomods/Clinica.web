@@ -100,21 +100,22 @@ public class ObrasSocialesController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var obraSocial = await _context.ObrasSociales.FindAsync(id);
-        if (obraSocial != null)
+        if (obraSocial == null)
         {
-            try 
-            {
-                _context.ObrasSociales.Remove(obraSocial);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                TempData["ErrorMessage"] = "No se puede eliminar la obra social porque tiene pacientes asociados.";
-                return RedirectToAction(nameof(Index));
-            }
+            return NotFound();
+        }
+
+        try 
+        {
+            _context.ObrasSociales.Remove(obraSocial);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Obra social eliminada correctamente.";
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] = "No se puede eliminar la obra social porque tiene pacientes asociados.";
         }
         
-        TempData["SuccessMessage"] = "Obra social eliminada correctamente.";
         return RedirectToAction(nameof(Index));
     }
 

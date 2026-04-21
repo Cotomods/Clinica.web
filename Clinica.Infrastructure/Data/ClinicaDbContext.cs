@@ -42,5 +42,18 @@ public class ClinicaDbContext : DbContext
             .WithMany(m => m.Turnos)
             .HasForeignKey(t => t.MedicoId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Especialidad es opcional para Medico
+        modelBuilder.Entity<Medico>()
+            .HasOne(m => m.Especialidad)
+            .WithMany(e => e.Medicos)
+            .HasForeignKey(m => m.EspecialidadId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Índice único para evitar pacientes con mismo tipo+número de documento
+        modelBuilder.Entity<Paciente>()
+            .HasIndex(p => new { p.TipoDocumento, p.NumeroDocumento })
+            .IsUnique()
+            .HasFilter("[TipoDocumento] IS NOT NULL AND [NumeroDocumento] IS NOT NULL");
     }
 }

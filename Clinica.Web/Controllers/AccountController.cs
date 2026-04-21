@@ -51,6 +51,15 @@ public class AccountController : Controller
         return View();
     }
 
+    // POST: /Account/Logout
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Login");
+    }
+
     // GET: /Account/AccessDenied
     [HttpGet]
     public IActionResult AccessDenied()

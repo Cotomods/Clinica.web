@@ -4,11 +4,12 @@ namespace Clinica.Domain.Entities;
 
 public enum EstadoTurno
 {
-    Reservado = 0,
-    Confirmado = 1,
-    Atendido = 2,
-    Cancelado = 3,
-    Ausente = 4
+    Disponible = 0,
+    Reservado = 1,
+    Confirmado = 2,
+    Atendido = 3,
+    Cancelado = 4,
+    Ausente = 5
 }
 
 public class Turno : IValidatableObject
@@ -23,7 +24,7 @@ public class Turno : IValidatableObject
     [DataType(DataType.DateTime)]
     public DateTime FechaHoraFin { get; set; }
 
-    public EstadoTurno Estado { get; set; } = EstadoTurno.Reservado;
+    public EstadoTurno Estado { get; set; } = EstadoTurno.Disponible;
 
     [Display(Name = "Motivo de consulta")]
     [StringLength(200, ErrorMessage = "El motivo no puede superar los 200 caracteres.")]
