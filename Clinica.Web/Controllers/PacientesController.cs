@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -48,22 +49,10 @@ public class PacientesController : Controller
             {
                 var mid = user.MedicoId.Value;
 
-                var pacientesIds = await _context.ConsultasMedicas
-                    .Where(c => c.MedicoId == mid)
-                    .Select(c => c.PacienteId)
-                    .Distinct()
-                    .ToListAsync();
-
-                pacientesIds = pacientesIds
-                    .Concat(await _context.Turnos
-                        .Where(t => t.MedicoId == mid && t.PacienteId.HasValue)
-                        .Select(t => t.PacienteId!.Value)
-                        .Distinct()
-                        .ToListAsync())
-                    .Distinct()
-                    .ToList();
-
-                query = query.Where(p => pacientesIds.Contains(p.PacienteId));
+                query = query.Where(p => 
+                    _context.ConsultasMedicas.Any(c => c.MedicoId == mid && c.PacienteId == p.PacienteId) ||
+                    _context.Turnos.Any(t => t.MedicoId == mid && t.PacienteId == p.PacienteId)
+                );
             }
             else
             {
@@ -209,35 +198,18 @@ public class PacientesController : Controller
             .Where(p => ids.Contains(p.PacienteId))
             .ToListAsync();
 
-        int eliminados = 0;
-        int conErrores = 0;
-        var erroresNombres = new List<string>();
-
-        foreach (var p in pacientes)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            try
-            {
-                _context.Pacientes.Remove(p);
-                await _context.SaveChangesAsync();
-                eliminados++;
-            }
-            catch (DbUpdateException)
-            {
-                _context.Entry(p).State = EntityState.Unchanged;
-                conErrores++;
-                erroresNombres.Add($"{p.Nombre} {p.Apellido}");
-            }
+            _context.Pacientes.RemoveRange(pacientes);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            TempData["SuccessMessage"] = $"Se eliminaron {pacientes.Count} paciente(s) correctamente.";
         }
-
-        if (eliminados > 0)
+        catch (DbUpdateException)
         {
-            TempData["SuccessMessage"] = $"Se eliminaron {eliminados} paciente(s) correctamente.";
-        }
-
-        if (conErrores > 0)
-        {
-            var nombresErrores = string.Join(", ", erroresNombres);
-            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} paciente(s) por dependencias (ej. turnos asociados): {nombresErrores}.";
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "No se pudieron eliminar los pacientes seleccionados porque al menos uno tiene dependencias (ej. turnos asociados). Ningún registro fue eliminado.";
         }
 
         return RedirectToAction(nameof(Index));
@@ -387,3 +359,5 @@ public class PacientesController : Controller
         return File(pdfBytes, "application/pdf", fileName);
     }
 }
+
+

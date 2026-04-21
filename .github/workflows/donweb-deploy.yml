@@ -1,0 +1,39 @@
+name: Deploy to DonWeb (FTP)
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Inyectar Cadena de Conexión de Producción
+      run: |
+        sed -i 's|REPLACE_WITH_PRODUCTION_CONNECTION_STRING|${{ secrets.PROD_DB_CONNECTION }}|g' Clinica.Web/appsettings.Production.json
+
+    - name: Restaurar dependencias
+      run: dotnet restore Clinica.Web/Clinica.Web.csproj
+
+    - name: Compilar (Publish)
+      run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -o ./publish
+
+    - name: Sincronizar vía FTP a DonWeb
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: /public_html/

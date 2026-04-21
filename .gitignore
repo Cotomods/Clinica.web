@@ -370,4 +370,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# Production settings with secrets — NEVER commit real credentials
+appsettings.Production.json
 
+# User Secrets (local overrides with sensitive data)
+appsettings.*.local.json

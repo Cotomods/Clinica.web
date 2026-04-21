@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -135,38 +136,21 @@ public class ObrasSocialesController : Controller
             .Where(o => ids.Contains(o.ObraSocialId))
             .ToListAsync();
 
-        int eliminadas = 0;
-        int conErrores = 0;
-        var erroresNombres = new List<string>();
-
-        foreach (var os in obrasSociales)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            try
-            {
-                _context.ObrasSociales.Remove(os);
-                await _context.SaveChangesAsync();
-                eliminadas++;
-            }
-            catch (DbUpdateException)
-            {
-                // Quitamos el estado Deleted para que en la próxima iteración no intente borrarlo de nuevo
-                _context.Entry(os).State = EntityState.Unchanged;
-                conErrores++;
-                erroresNombres.Add(os.Nombre);
-            }
+            _context.ObrasSociales.RemoveRange(obrasSociales);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            TempData["SuccessMessage"] = $"Se eliminaron {obrasSociales.Count} obra(s) social(es) correctamente.";
         }
-
-        if (eliminadas > 0)
+        catch (DbUpdateException)
         {
-            TempData["SuccessMessage"] = $"Se eliminaron {eliminadas} obra(s) social(es) correctamente.";
-        }
-
-        if (conErrores > 0)
-        {
-            var nombresErrores = string.Join(", ", erroresNombres);
-            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} obra(s) social(es) por dependencias (ej. pacientes asociados): {nombresErrores}.";
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "No se pudieron eliminar las obras sociales seleccionadas porque al menos una tiene dependencias (ej. pacientes asociados). Ningún registro fue eliminado.";
         }
 
         return RedirectToAction(nameof(Index));
     }
 }
+

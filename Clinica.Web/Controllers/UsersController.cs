@@ -1,6 +1,6 @@
 using Clinica.Infrastructure.Data;
-using Clinica.Web.Data;
 using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +15,17 @@ public class UsersController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ClinicaDbContext _clinicaContext;
-    private readonly ApplicationDbContext _identityContext;
+    
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ClinicaDbContext clinicaContext,
-        ApplicationDbContext identityContext)
+        ClinicaDbContext clinicaContext)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _clinicaContext = clinicaContext;
-        _identityContext = identityContext;
+        
     }
 
     // GET: /Users
@@ -35,7 +34,7 @@ public class UsersController : Controller
         const int pageSize = 20;
         ViewData["CurrentFilter"] = searchTerm;
 
-        IQueryable<ApplicationUser> usersQuery = _identityContext.Users
+        IQueryable<ApplicationUser> usersQuery = _clinicaContext.Users
             .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -47,7 +46,7 @@ public class UsersController : Controller
         // RRHH no debe ver usuarios con rol Admin: lo filtramos a nivel query para que la paginación sea exacta.
         if (!User.IsInRole("Admin"))
         {
-            var adminRoleId = await _identityContext.Roles
+            var adminRoleId = await _clinicaContext.Roles
                 .Where(r => r.Name == "Admin")
                 .Select(r => r.Id)
                 .FirstOrDefaultAsync();
@@ -55,7 +54,7 @@ public class UsersController : Controller
             if (!string.IsNullOrEmpty(adminRoleId))
             {
                 usersQuery = usersQuery.Where(u =>
-                    !_identityContext.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId));
+                    !_clinicaContext.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId));
             }
         }
 
@@ -411,3 +410,6 @@ public class UsersController : Controller
         ViewBag.MedicoId = new SelectList(medicos, "MedicoId", "Nombre", selectedMedicoId);
     }
 }
+
+
+

@@ -17,3 +17,7 @@ Al iniciar, la aplicación:
 ## Usuario administrador inicial
 - Email: `admin@clinica.local`
 - Password: `Admin123!`
+
+## Configuración en Producción
+Para desplegar la aplicación en producción, la cadena de conexión a la base de datos debe inyectarse de forma segura usando la variable de entorno `CLINICA_DB_CONNECTION`.
+Por seguridad, **nunca** guardes credenciales de bases de datos productivas en los archivos `appsettings.json` o `appsettings.Production.json`.

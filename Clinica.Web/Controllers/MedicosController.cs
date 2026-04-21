@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -229,35 +230,18 @@ public class MedicosController : Controller
             .Where(m => ids.Contains(m.MedicoId))
             .ToListAsync();
 
-        int eliminados = 0;
-        int conErrores = 0;
-        var erroresNombres = new List<string>();
-
-        foreach (var m in medicos)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            try
-            {
-                _context.Medicos.Remove(m);
-                await _context.SaveChangesAsync();
-                eliminados++;
-            }
-            catch (DbUpdateException)
-            {
-                _context.Entry(m).State = EntityState.Unchanged;
-                conErrores++;
-                erroresNombres.Add($"{m.Nombre} {m.Apellido}");
-            }
+            _context.Medicos.RemoveRange(medicos);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            TempData["SuccessMessage"] = $"Se eliminaron {medicos.Count} médico(s) correctamente.";
         }
-
-        if (eliminados > 0)
+        catch (DbUpdateException)
         {
-            TempData["SuccessMessage"] = $"Se eliminaron {eliminados} médico(s) correctamente.";
-        }
-
-        if (conErrores > 0)
-        {
-            var nombresErrores = string.Join(", ", erroresNombres);
-            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} médico(s) por dependencias (ej. turnos asociados): {nombresErrores}.";
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "No se pudieron eliminar los médicos seleccionados porque al menos uno tiene dependencias (ej. turnos asociados). Ningún registro fue eliminado.";
         }
 
         return RedirectToAction(nameof(Index));
@@ -450,3 +434,6 @@ public class MedicosController : Controller
         return result;
     }
 }
+
+
+

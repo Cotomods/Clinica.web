@@ -1,6 +1,5 @@
 using Clinica.Infrastructure.Data;
-using Clinica.Web.Data;
-using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -15,13 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Configurar licencia QuestPDF (Community)
 QuestPDF.Settings.License = LicenseType.Community;
 
-// Add services to the container.
-builder.Services.AddDbContext<ClinicaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ClinicaDb")));
+// Conexión a la base de datos.
+// Prioridad: variable de entorno CLINICA_DB_CONNECTION > appsettings ConnectionStrings:ClinicaDb
+var connectionString = Environment.GetEnvironmentVariable("CLINICA_DB_CONNECTION")
+                       ?? builder.Configuration.GetConnectionString("ClinicaDb")
+                       ?? throw new InvalidOperationException(
+                           "No se encontró la cadena de conexión. " +
+                           "Configurá la variable de entorno CLINICA_DB_CONNECTION o el valor ConnectionStrings:ClinicaDb en appsettings.");
 
-// DbContext para Identity (usuarios y roles) usando la misma base de datos
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ClinicaDb")));
+builder.Services.AddDbContext<ClinicaDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 // Identity + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
@@ -31,7 +33,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
         options.User.RequireUniqueEmail = true;
     })
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ClinicaDbContext>();
 
 // Configurar ruta de login personalizada y evitar exponer las páginas de registro/recuperación de contraseña
 builder.Services.ConfigureApplicationCookie(options =>
@@ -59,7 +61,6 @@ using (var scope = app.Services.CreateScope())
     var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
     EnsureDatabaseCreatedAndMigrated<ClinicaDbContext>(services, logger);
-    EnsureDatabaseCreatedAndMigrated<ApplicationDbContext>(services, logger);
 
     // Seed de datos maestros y de prueba para ClinicaDbContext
     DbInitializer.SeedData(services.GetRequiredService<ClinicaDbContext>());
@@ -175,3 +176,4 @@ static void SeedIdentity(RoleManager<IdentityRole> roleManager, UserManager<Appl
         }
     }
 }
+

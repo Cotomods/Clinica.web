@@ -1,9 +1,11 @@
 using Clinica.Domain.Entities;
+using Clinica.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Data;
 
-public class ClinicaDbContext : DbContext
+public class ClinicaDbContext : IdentityDbContext<ApplicationUser>
 {
     public ClinicaDbContext(DbContextOptions<ClinicaDbContext> options) : base(options)
     {

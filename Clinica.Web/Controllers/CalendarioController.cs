@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -63,18 +64,16 @@ public class CalendarioController : Controller
             query = query.Where(t => t.PacienteId == pacienteId.Value);
         }
 
-        var turnosMes = await query.ToListAsync();
-
-        var diasConTurnos = turnosMes
+        var diasConTurnos = await query
             .Select(t => t.FechaHoraInicio.Day)
             .Distinct()
             .OrderBy(d => d)
-            .ToList();
+            .ToListAsync();
 
-        var turnosDelDia = turnosMes
+        var turnosDelDia = await query
             .Where(t => t.FechaHoraInicio.Date == baseDate.Date)
             .OrderBy(t => t.FechaHoraInicio)
-            .ToList();
+            .ToListAsync();
 
         var vm = new CalendarioTurnosViewModel
         {
@@ -228,6 +227,15 @@ public class CalendarioController : Controller
             return NotFound();
         }
 
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId == null || turno.MedicoId != user.MedicoId.Value)
+            {
+                return Forbid();
+            }
+        }
+
         var model = new CambiarEstadoTurnoViewModel
         {
             TurnoId = turno.TurnoId,
@@ -250,6 +258,15 @@ public class CalendarioController : Controller
         if (turno == null)
         {
             return NotFound();
+        }
+
+        if (User.IsInRole("Medico"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.MedicoId == null || turno.MedicoId != user.MedicoId.Value)
+            {
+                return Forbid();
+            }
         }
 
         if (!ModelState.IsValid)
@@ -290,3 +307,7 @@ public class CalendarioController : Controller
         return RedirectToAction(nameof(Index), new { fecha = turno.FechaHoraInicio.Date.ToString("yyyy-MM-dd"), medicoId = turno.MedicoId });
     }
 }
+
+
+
+

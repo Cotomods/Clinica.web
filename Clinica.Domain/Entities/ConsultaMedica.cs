@@ -1,10 +1,18 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Clinica.Domain.Entities;
 
 public class ConsultaMedica
 {
     public int ConsultaMedicaId { get; set; }
+
+    [Required]
     public DateTime FechaConsulta { get; set; }
+
+    [Required(ErrorMessage = "El motivo de la consulta es obligatorio.")]
+    [StringLength(500)]
     public string MotivoConsulta { get; set; } = string.Empty;
+
     public string? Anamnesis { get; set; }
     public string? ExamenFisico { get; set; }
     public string? Indicaciones { get; set; }

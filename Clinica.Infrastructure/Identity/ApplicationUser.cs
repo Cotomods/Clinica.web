@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Clinica.Web.Models;
+namespace Clinica.Infrastructure.Identity;
 
 public class ApplicationUser : IdentityUser
 {
