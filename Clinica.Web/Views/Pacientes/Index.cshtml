@@ -22,10 +22,44 @@
     </div>
 </div>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4 mt-3" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0 me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4 mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="DeleteMultiple" method="post">
+    @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+    {
+        <div class="mb-3 text-end">
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Está seguro de eliminar los pacientes seleccionados?');">
+                <i class="bi bi-trash"></i> Eliminar Seleccionados
+            </button>
+        </div>
+    }
+
 <table class="table table-striped">
 @* ... (table remains unchanged) ... *@
     <thead>
         <tr>
+            @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+            {
+                <th style="width: 40px;">
+                    <input type="checkbox" class="form-check-input" id="selectAll" />
+                </th>
+            }
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Documento</th>
@@ -38,6 +72,12 @@
 @foreach (var p in Model)
     {
         <tr>
+            @if (User.IsInRole("Admin") || User.IsInRole("RecursosHumanos"))
+            {
+                <td>
+                    <input type="checkbox" class="form-check-input select-item" name="ids" value="@p.PacienteId" />
+                </td>
+            }
             <td>@p.Nombre</td>
             <td>@p.Apellido</td>
             <td>@p.TipoDocumento @p.NumeroDocumento</td>
@@ -61,6 +101,7 @@
     }
     </tbody>
 </table>
+</form>
 
 @if (Model.TotalPages > 1)
 {
@@ -100,6 +141,17 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const selectAll = document.getElementById("selectAll");
+            const items = document.querySelectorAll(".select-item");
+            
+            if (selectAll) {
+                selectAll.addEventListener("change", function () {
+                    items.forEach(item => {
+                        item.checked = selectAll.checked;
+                    });
+                });
+            }
+
             const searchInput = document.getElementById("searchInput");
             const searchForm = document.getElementById("searchForm");
             let timeout = null;

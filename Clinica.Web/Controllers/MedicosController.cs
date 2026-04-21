@@ -91,6 +91,178 @@ public class MedicosController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: /Medicos/Edit/5
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var medico = await _context.Medicos
+            .Include(m => m.Especialidad)
+            .FirstOrDefaultAsync(m => m.MedicoId == id);
+            
+        if (medico == null)
+        {
+            return NotFound();
+        }
+
+        var vm = new MedicoEditViewModel
+        {
+            MedicoId = medico.MedicoId,
+            Nombre = medico.Nombre,
+            Apellido = medico.Apellido,
+            Matricula = medico.Matricula,
+            EspecialidadNombre = medico.Especialidad?.Nombre
+        };
+        
+        return View(vm);
+    }
+
+    // POST: /Medicos/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> Edit(int id, MedicoEditViewModel model)
+    {
+        if (id != model.MedicoId)
+        {
+            return BadRequest();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var medico = await _context.Medicos
+            .Include(m => m.Especialidad)
+            .FirstOrDefaultAsync(m => m.MedicoId == id);
+
+        if (medico == null)
+        {
+            return NotFound();
+        }
+
+        Especialidad? especialidad = medico.Especialidad;
+        if (medico.Especialidad?.Nombre != model.EspecialidadNombre)
+        {
+            if (string.IsNullOrWhiteSpace(model.EspecialidadNombre))
+            {
+                especialidad = null;
+            }
+            else
+            {
+                especialidad = await _context.Especialidades
+                    .FirstOrDefaultAsync(e => e.Nombre == model.EspecialidadNombre);
+
+                if (especialidad == null)
+                {
+                    especialidad = new Especialidad { Nombre = model.EspecialidadNombre };
+                    _context.Especialidades.Add(especialidad);
+                }
+            }
+        }
+
+        medico.Nombre = model.Nombre;
+        medico.Apellido = model.Apellido;
+        medico.Matricula = model.Matricula;
+        medico.Especialidad = especialidad;
+
+        _context.Update(medico);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: /Medicos/Delete/5
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var medico = await _context.Medicos
+            .Include(m => m.Especialidad)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.MedicoId == id);
+            
+        if (medico == null)
+        {
+            return NotFound();
+        }
+
+        return View(medico);
+    }
+
+    // POST: /Medicos/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var medico = await _context.Medicos.FindAsync(id);
+        if (medico != null)
+        {
+            try
+            {
+                _context.Medicos.Remove(medico);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Médico eliminado correctamente.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] = "No se puede eliminar el médico porque tiene turnos o pacientes asociados.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+        
+        return RedirectToAction(nameof(Index));
+    }
+
+    // POST: /Medicos/DeleteMultiple
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> DeleteMultiple(int[] ids)
+    {
+        if (ids == null || ids.Length == 0)
+        {
+            TempData["ErrorMessage"] = "No se seleccionó ningún médico para eliminar.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var medicos = await _context.Medicos
+            .Where(m => ids.Contains(m.MedicoId))
+            .ToListAsync();
+
+        int eliminados = 0;
+        int conErrores = 0;
+        var erroresNombres = new List<string>();
+
+        foreach (var m in medicos)
+        {
+            try
+            {
+                _context.Medicos.Remove(m);
+                await _context.SaveChangesAsync();
+                eliminados++;
+            }
+            catch (DbUpdateException)
+            {
+                _context.Entry(m).State = EntityState.Unchanged;
+                conErrores++;
+                erroresNombres.Add($"{m.Nombre} {m.Apellido}");
+            }
+        }
+
+        if (eliminados > 0)
+        {
+            TempData["SuccessMessage"] = $"Se eliminaron {eliminados} médico(s) correctamente.";
+        }
+
+        if (conErrores > 0)
+        {
+            var nombresErrores = string.Join(", ", erroresNombres);
+            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} médico(s) por dependencias (ej. turnos asociados): {nombresErrores}.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
     // GET: /Medicos/GenerarTurnos/5
     [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> GenerarTurnos(int id)

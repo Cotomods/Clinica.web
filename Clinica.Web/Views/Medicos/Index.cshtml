@@ -18,10 +18,37 @@
         </form>
     </div>
 </div>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4 mt-3" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0 me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4 mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="DeleteMultiple" method="post">
+<div class="mb-3 text-end">
+    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Está seguro de eliminar los médicos seleccionados?');">
+        <i class="bi bi-trash"></i> Eliminar Seleccionados
+    </button>
+</div>
 
 <table class="table table-striped">
     <thead>
         <tr>
+            <th style="width: 40px;">
+                <input type="checkbox" class="form-check-input" id="selectAll" />
+            </th>
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Especialidad</th>
@@ -33,17 +60,23 @@
     @foreach (var m in Model)
     {
         <tr>
+            <td>
+                <input type="checkbox" class="form-check-input select-item" name="ids" value="@m.MedicoId" />
+            </td>
             <td>@m.Nombre</td>
             <td>@m.Apellido</td>
             <td>@m.Especialidad?.Nombre</td>
             <td>@m.Matricula</td>
             <td>
+                <a asp-action="Edit" asp-route-id="@m.MedicoId" class="btn btn-sm btn-primary">Editar</a>
+                <a asp-action="Delete" asp-route-id="@m.MedicoId" class="btn btn-sm btn-danger">Eliminar</a>
                 <a asp-action="GenerarTurnos" asp-route-id="@m.MedicoId" class="btn btn-sm btn-secondary">Generar turnos</a>
             </td>
         </tr>
     }
     </tbody>
 </table>
+</form>
 
 @if (Model.TotalPages > 1)
 {
@@ -83,6 +116,17 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const selectAll = document.getElementById("selectAll");
+            const items = document.querySelectorAll(".select-item");
+            
+            if (selectAll) {
+                selectAll.addEventListener("change", function () {
+                    items.forEach(item => {
+                        item.checked = selectAll.checked;
+                    });
+                });
+            }
+
             const searchInput = document.getElementById("searchInput");
             const searchForm = document.getElementById("searchForm");
             let timeout = null;

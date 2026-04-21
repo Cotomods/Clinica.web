@@ -1,31 +1,36 @@
-@model Clinica.Domain.Entities.ObraSocial
+@model Clinica.Domain.Entities.Medico
 
 @{
-    ViewData["Title"] = "Eliminar Obra Social";
+    ViewData["Title"] = "Eliminar médico";
 }
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card border-danger shadow-sm mt-4">
             <div class="card-header bg-danger text-white">
-                <h4 class="mb-0">Eliminar Obra Social</h4>
+                <h4 class="mb-0">Eliminar Médico</h4>
             </div>
             <div class="card-body">
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-triangle-fill"></i>
-                    <strong>Atención:</strong> ¿Está seguro que desea eliminar esta obra social? Esta acción no se puede deshacer.
+                    <strong>Atención:</strong> ¿Está seguro que desea eliminar a este médico? Esta acción no se puede deshacer.
                 </div>
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <dl class="row mt-4">
-                    <dt class="col-sm-4">Nombre</dt>
-                    <dd class="col-sm-8">@Model.Nombre</dd>
+                    <dt class="col-sm-4">Nombre Completo</dt>
+                    <dd class="col-sm-8">@Model.Nombre @Model.Apellido</dd>
 
-                    <dt class="col-sm-4">Código</dt>
-                    <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Codigo) ? "-" : Model.Codigo)</dd>
+                    <dt class="col-sm-4">Matrícula</dt>
+                    <dd class="col-sm-8">@Model.Matricula</dd>
+                    
+                    <dt class="col-sm-4">Especialidad</dt>
+                    <dd class="col-sm-8">@(Model.Especialidad?.Nombre ?? "-")</dd>
                 </dl>
 
                 <form asp-action="Delete" method="post">
-                    <input type="hidden" asp-for="ObraSocialId" />
+                    <input type="hidden" asp-for="MedicoId" />
                     <div class="d-flex justify-content-between align-items-center mt-4">
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
                         <button type="submit" class="btn btn-danger px-4">Confirmar Eliminación</button>

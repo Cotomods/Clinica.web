@@ -32,8 +32,6 @@ public static class DbInitializer
             for (int i = 1; i <= 25; i++)
             {
                 var os = new ObraSocial { Nombre = $"Obra Social {i}", Codigo = $"OS{i:D3}" };
-                os.Planes.Add(new PlanObraSocial { Nombre = $"Plan Oro {i}" });
-                os.Planes.Add(new PlanObraSocial { Nombre = $"Plan Plata {i}" });
                 context.ObrasSociales.Add(os);
             }
             context.SaveChanges();
@@ -73,15 +71,14 @@ public static class DbInitializer
         // 5. Pacientes
         if (context.Pacientes.Count() < 50)
         {
-            var planIds = context.PlanesObraSocial.Select(p => p.PlanObraSocialId).ToList();
+            var osIds = context.ObrasSociales.Select(p => p.ObraSocialId).ToList();
             var nombres = new[] { "Ricardo", "Monica", "Hugo", "Rosa", "Fabian", "Silvia", "Daniel", "Patricia", "Gustavo", "Beatriz" };
             var apellidos = new[] { "Acosta", "Rojas", "Villalba", "Gimenez", "Cardozo", "Torres", "Ramirez", "Flores", "Benitez", "Castro" };
             
             var random = new Random();
             for (int i = context.Pacientes.Count() + 1; i <= 50; i++)
             {
-                var osPlanId = planIds[random.Next(planIds.Count)];
-                var plan = context.PlanesObraSocial.AsNoTracking().FirstOrDefault(p => p.PlanObraSocialId == osPlanId);
+                var osId = osIds[random.Next(osIds.Count)];
 
                 context.Pacientes.Add(new Paciente
                 {
@@ -93,8 +90,7 @@ public static class DbInitializer
                     Email = $"paciente{i}@ejemplo.com",
                     Telefono = $"11{random.Next(40000000, 60000000)}",
                     Direccion = $"Calle Falsa {random.Next(100, 9999)}",
-                    ObraSocialId = plan?.ObraSocialId,
-                    PlanObraSocialId = osPlanId,
+                    ObraSocialId = osId,
                     NumeroHistoriaClinica = $"HC{random.Next(100000, 999999)}"
                 });
             }

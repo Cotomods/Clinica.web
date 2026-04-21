@@ -14,7 +14,6 @@ public class ClinicaDbContext : DbContext
     public DbSet<Especialidad> Especialidades => Set<Especialidad>();
     public DbSet<Consultorio> Consultorios => Set<Consultorio>();
     public DbSet<ObraSocial> ObrasSociales => Set<ObraSocial>();
-    public DbSet<PlanObraSocial> PlanesObraSocial => Set<PlanObraSocial>();
     public DbSet<Turno> Turnos => Set<Turno>();
     public DbSet<ConsultaMedica> ConsultasMedicas => Set<ConsultaMedica>();
     public DbSet<Diagnostico> Diagnosticos => Set<Diagnostico>();
@@ -30,19 +29,6 @@ public class ClinicaDbContext : DbContext
             .WithMany(o => o.Pacientes)
             .HasForeignKey(p => p.ObraSocialId)
             .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Paciente>()
-            .HasOne(p => p.PlanObraSocial)
-            .WithMany(p => p.Pacientes)
-            .HasForeignKey(p => p.PlanObraSocialId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        // Evitar multiple cascade paths desde ObraSocial hacia Paciente
-        modelBuilder.Entity<PlanObraSocial>()
-            .HasOne(p => p.ObraSocial)
-            .WithMany(o => o.Planes)
-            .HasForeignKey(p => p.ObraSocialId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Turno>()
             .HasOne(t => t.ConsultaMedica)

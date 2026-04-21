@@ -45,9 +45,6 @@ public class Paciente : IValidatableObject
     public int? ObraSocialId { get; set; }
     public ObraSocial? ObraSocial { get; set; }
 
-    public int? PlanObraSocialId { get; set; }
-    public PlanObraSocial? PlanObraSocial { get; set; }
-
     public ICollection<Turno> Turnos { get; set; } = new List<Turno>();
     public ICollection<ConsultaMedica> Consultas { get; set; } = new List<ConsultaMedica>();
 

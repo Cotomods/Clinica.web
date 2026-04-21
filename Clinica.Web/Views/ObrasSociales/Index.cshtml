@@ -11,14 +11,42 @@
     </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-4">Nombre</th>
-                        <th>Código</th>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0 me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="DeleteMultiple" method="post">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-muted">Listado</h5>
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Está seguro de eliminar las obras sociales seleccionadas?');">
+                <i class="bi bi-trash"></i> Eliminar Seleccionados
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="selectAll" />
+                            </th>
+                            <th>Nombre</th>
+                            <th>Código</th>
                         <th class="text-end pe-4">Acciones</th>
                     </tr>
                 </thead>
@@ -26,13 +54,16 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="3" class="text-center py-4 text-muted">No hay obras sociales registradas.</td>
+                            <td colspan="4" class="text-center py-4 text-muted">No hay obras sociales registradas.</td>
                         </tr>
                     }
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td class="ps-4"><strong>@item.Nombre</strong></td>
+                            <td class="ps-4">
+                                <input type="checkbox" class="form-check-input select-item" name="ids" value="@item.ObraSocialId" />
+                            </td>
+                            <td><strong>@item.Nombre</strong></td>
                             <td>@item.Codigo</td>
                             <td class="text-end pe-4">
                                 <a asp-action="Edit" asp-route-id="@item.ObraSocialId" class="btn btn-sm btn-outline-primary me-2">Editar</a>
@@ -45,6 +76,7 @@
         </div>
     </div>
 </div>
+</form>
 
 @if (Model.TotalPages > 1)
 {
@@ -64,4 +96,21 @@
             </li>
         </ul>
     </nav>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAll');
+            const items = document.querySelectorAll('.select-item');
+            
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    items.forEach(item => {
+                        item.checked = selectAll.checked;
+                    });
+                });
+            }
+        });
+    </script>
 }

@@ -109,11 +109,63 @@ public class ObrasSocialesController : Controller
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError(string.Empty, "No se puede eliminar la obra social porque tiene pacientes asociados.");
-                return View(obraSocial);
+                TempData["ErrorMessage"] = "No se puede eliminar la obra social porque tiene pacientes asociados.";
+                return RedirectToAction(nameof(Index));
             }
         }
         
+        TempData["SuccessMessage"] = "Obra social eliminada correctamente.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // POST: /ObrasSociales/DeleteMultiple
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> DeleteMultiple(int[] ids)
+    {
+        if (ids == null || ids.Length == 0)
+        {
+            TempData["ErrorMessage"] = "No se seleccionó ninguna obra social para eliminar.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var obrasSociales = await _context.ObrasSociales
+            .Where(o => ids.Contains(o.ObraSocialId))
+            .ToListAsync();
+
+        int eliminadas = 0;
+        int conErrores = 0;
+        var erroresNombres = new List<string>();
+
+        foreach (var os in obrasSociales)
+        {
+            try
+            {
+                _context.ObrasSociales.Remove(os);
+                await _context.SaveChangesAsync();
+                eliminadas++;
+            }
+            catch (DbUpdateException)
+            {
+                // Quitamos el estado Deleted para que en la próxima iteración no intente borrarlo de nuevo
+                _context.Entry(os).State = EntityState.Unchanged;
+                conErrores++;
+                erroresNombres.Add(os.Nombre);
+            }
+        }
+
+        if (eliminadas > 0)
+        {
+            TempData["SuccessMessage"] = $"Se eliminaron {eliminadas} obra(s) social(es) correctamente.";
+        }
+
+        if (conErrores > 0)
+        {
+            var nombresErrores = string.Join(", ", erroresNombres);
+            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} obra(s) social(es) por dependencias (ej. pacientes asociados): {nombresErrores}.";
+        }
+
         return RedirectToAction(nameof(Index));
     }
 }

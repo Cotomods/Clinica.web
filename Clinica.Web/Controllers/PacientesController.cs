@@ -171,12 +171,62 @@ public class PacientesController : Controller
         {
             _context.Pacientes.Remove(paciente);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Paciente eliminado correctamente.";
         }
         catch (DbUpdateException)
         {
-            // Si hay restricciones de FK (turnos/consultas), mostrar un mensaje simple
-            ModelState.AddModelError(string.Empty, "No se puede eliminar el paciente porque tiene información relacionada (turnos o consultas).");
-            return View(paciente);
+            TempData["ErrorMessage"] = "No se puede eliminar el paciente porque tiene información relacionada (turnos o consultas).";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // POST: /Pacientes/DeleteMultiple
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,RecursosHumanos")]
+    public async Task<IActionResult> DeleteMultiple(int[] ids)
+    {
+        if (ids == null || ids.Length == 0)
+        {
+            TempData["ErrorMessage"] = "No se seleccionó ningún paciente para eliminar.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var pacientes = await _context.Pacientes
+            .Where(p => ids.Contains(p.PacienteId))
+            .ToListAsync();
+
+        int eliminados = 0;
+        int conErrores = 0;
+        var erroresNombres = new List<string>();
+
+        foreach (var p in pacientes)
+        {
+            try
+            {
+                _context.Pacientes.Remove(p);
+                await _context.SaveChangesAsync();
+                eliminados++;
+            }
+            catch (DbUpdateException)
+            {
+                _context.Entry(p).State = EntityState.Unchanged;
+                conErrores++;
+                erroresNombres.Add($"{p.Nombre} {p.Apellido}");
+            }
+        }
+
+        if (eliminados > 0)
+        {
+            TempData["SuccessMessage"] = $"Se eliminaron {eliminados} paciente(s) correctamente.";
+        }
+
+        if (conErrores > 0)
+        {
+            var nombresErrores = string.Join(", ", erroresNombres);
+            TempData["ErrorMessage"] = $"No se pudieron eliminar {conErrores} paciente(s) por dependencias (ej. turnos asociados): {nombresErrores}.";
         }
 
         return RedirectToAction(nameof(Index));
