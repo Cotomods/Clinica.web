@@ -1,0 +1,54 @@
+@* Partial para inicializar Select2 en dropdowns de médicos y pacientes *@
+@* Uso: @await Html.PartialAsync("_Select2Scripts") *@
+
+<script>
+    $(function () {
+        // Configuración base Select2
+        var s2opts = {
+            theme: 'bootstrap-5',
+            language: 'es',
+            allowClear: true,
+            width: '100%'
+        };
+
+        // Inicializar selects de médico con búsqueda AJAX
+        $('select.select2-medico').each(function () {
+            var $el = $(this);
+            $el.select2($.extend({}, s2opts, {
+                placeholder: $el.data('placeholder') || 'Buscar médico...',
+                ajax: {
+                    url: '/api/medicos',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return { term: params.term, page: params.page || 1 };
+                    },
+                    processResults: function (data) {
+                        return data;
+                    },
+                    cache: true
+                }
+            }));
+        });
+
+        // Inicializar selects de paciente con búsqueda AJAX
+        $('select.select2-paciente').each(function () {
+            var $el = $(this);
+            $el.select2($.extend({}, s2opts, {
+                placeholder: $el.data('placeholder') || 'Buscar paciente...',
+                ajax: {
+                    url: '/api/pacientes',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return { term: params.term, page: params.page || 1 };
+                    },
+                    processResults: function (data) {
+                        return data;
+                    },
+                    cache: true
+                }
+            }));
+        });
+    });
+</script>

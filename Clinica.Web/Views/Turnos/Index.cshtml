@@ -17,14 +17,38 @@
     </div>
     <div class="col-auto">
         <label class="form-label">Médico</label>
-        <select name="medicoId" class="form-select" asp-items="ViewBag.MedicoId">
-            <option value="">Todos</option>
+        <select name="medicoId" class="form-select select2-medico" data-placeholder="Todos" style="min-width:220px">
+            <option value=""></option>
+            @{
+                var medicoItems = ViewBag.MedicoId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                var selMedico = Context.Request.Query["medicoId"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(selMedico) && medicoItems != null)
+                {
+                    var opt = medicoItems.FirstOrDefault(i => i.Value == selMedico);
+                    if (opt != null)
+                    {
+                        <option value="@opt.Value" selected>@opt.Text</option>
+                    }
+                }
+            }
         </select>
     </div>
     <div class="col-auto">
         <label class="form-label">Paciente</label>
-        <select name="pacienteId" class="form-select" asp-items="ViewBag.PacienteId">
-            <option value="">Todos</option>
+        <select name="pacienteId" class="form-select select2-paciente" data-placeholder="Todos" style="min-width:220px">
+            <option value=""></option>
+            @{
+                var pacienteItems = ViewBag.PacienteId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                var selPaciente = Context.Request.Query["pacienteId"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(selPaciente) && pacienteItems != null)
+                {
+                    var opt2 = pacienteItems.FirstOrDefault(i => i.Value == selPaciente);
+                    if (opt2 != null)
+                    {
+                        <option value="@opt2.Value" selected>@opt2.Text</option>
+                    }
+                }
+            }
         </select>
     </div>
     <div class="col-auto align-self-end">
@@ -114,4 +138,8 @@
             </li>
         </ul>
     </nav>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_Select2Scripts");}
 }

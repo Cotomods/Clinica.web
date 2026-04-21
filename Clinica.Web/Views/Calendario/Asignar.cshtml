@@ -18,7 +18,9 @@
 
     <div class="mb-3">
         <label asp-for="PacienteId" class="form-label"></label>
-        <select asp-for="PacienteId" class="form-select" asp-items="ViewBag.PacienteId"></select>
+        <select asp-for="PacienteId" class="form-select select2-paciente" data-placeholder="Buscar paciente...">
+            <option value=""></option>
+        </select>
         <span asp-validation-for="PacienteId" class="text-danger"></span>
     </div>
     <div class="mb-3">
@@ -33,4 +35,5 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{await Html.RenderPartialAsync("_Select2Scripts");}
 }

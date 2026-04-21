@@ -58,10 +58,22 @@ public class HomeController : Controller
         {
             TotalPacientes = totalPacientes,
             TotalMedicos = totalMedicos,
+            TotalObrasSociales = await _context.ObrasSociales.CountAsync(),
             TurnosHoyTotal = turnosHoy.Count,
             TurnosHoyLibres = turnosHoy.Count(t => t.PacienteId == null),
+            TurnosHoyAtendidos = turnosHoy.Count(t => t.Estado == Clinica.Domain.Entities.EstadoTurno.Atendido),
+            TurnosHoyCancelados = turnosHoy.Count(t => t.Estado == Clinica.Domain.Entities.EstadoTurno.Cancelado),
+            TurnosHoyAusentes = turnosHoy.Count(t => t.Estado == Clinica.Domain.Entities.EstadoTurno.Ausente),
             FechaHoy = hoy,
-            TurnosHoy = turnosHoy
+            TurnosHoy = turnosHoy,
+            ProximosTurnos = turnosHoy
+                .Where(t => t.PacienteId != null
+                    && t.FechaHoraInicio >= DateTime.Now
+                    && t.Estado != Clinica.Domain.Entities.EstadoTurno.Cancelado
+                    && t.Estado != Clinica.Domain.Entities.EstadoTurno.Atendido)
+                .OrderBy(t => t.FechaHoraInicio)
+                .Take(5)
+                .ToList()
         };
 
         return View(vm);

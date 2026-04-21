@@ -2,117 +2,226 @@
 
 @{
     ViewData["Title"] = "Panel de control";
+    var turnosAsignados = Model.TurnosHoyTotal - Model.TurnosHoyLibres;
+    var porcentajeOcupacion = Model.TurnosHoyTotal > 0
+        ? (int)Math.Round(turnosAsignados * 100.0 / Model.TurnosHoyTotal)
+        : 0;
 }
 
 <h1 class="mb-4">Panel de control</h1>
 
-<!-- KPIs -->
+<!-- KPIs principales -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <a asp-controller="Pacientes" asp-action="Index" class="text-decoration-none">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Pacientes</h5>
-                    <p class="card-text display-6">@Model.TotalPacientes</p>
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 opacity-75">Pacientes</h6>
+                            <h2 class="card-title mb-0 fw-bold">@Model.TotalPacientes</h2>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-3 mb-3">
         <a asp-controller="Medicos" asp-action="Index" class="text-decoration-none">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Médicos</h5>
-                    <p class="card-text display-6">@Model.TotalMedicos</p>
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 opacity-75">Médicos</h6>
+                            <h2 class="card-title mb-0 fw-bold">@Model.TotalMedicos</h2>
+                        </div>
+                        <i class="bi bi-person-badge fs-1 opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-3 mb-3">
         <a asp-controller="Calendario" asp-action="Index" class="text-decoration-none">
-            <div class="card text-white bg-info h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Turnos de hoy</h5>
-                    <p class="card-text display-6">@Model.TurnosHoyTotal</p>
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 opacity-75">Turnos hoy</h6>
+                            <h2 class="card-title mb-0 fw-bold">@turnosAsignados / @Model.TurnosHoyTotal</h2>
+                        </div>
+                        <i class="bi bi-calendar-check fs-1 opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card text-white bg-secondary h-100">
-            <div class="card-body">
-                <h5 class="card-title">Turnos libres hoy</h5>
-                <p class="card-text display-6">@Model.TurnosHoyLibres</p>
+        <a asp-controller="ObrasSociales" asp-action="Index" class="text-decoration-none">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-1 opacity-75">Obras Sociales</h6>
+                            <h2 class="card-title mb-0 fw-bold">@Model.TotalObrasSociales</h2>
+                        </div>
+                        <i class="bi bi-shield-check fs-1 opacity-50"></i>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
-<!-- Turnos de hoy -->
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Turnos de hoy (@Model.FechaHoy.ToString("dd/MM/yyyy"))</h5>
-
-        @if (!Model.TurnosHoy.Any())
-        {
-            <p class="text-muted">No hay turnos registrados para hoy.</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Hora</th>
-                            <th>Paciente</th>
-                            <th>Médico</th>
-                            <th>Estado</th>
-                            <th>Motivo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var t in Model.TurnosHoy)
-                    {
-                        <tr>
-                            <td>@t.FechaHoraInicio.ToString("HH:mm")</td>
-                            <td>@(t.Paciente != null ? $"{t.Paciente.Apellido} {t.Paciente.Nombre}" : "(Libre)")</td>
-                            <td>@(t.Medico != null ? $"{t.Medico.Apellido} {t.Medico.Nombre}" : "-")</td>
-                            <td>
-                                @if (t.PacienteId == null)
-                                {
-                                    <span class="badge bg-secondary">Libre</span>
-                                }
-                                else
-                                {
-                                    @switch (t.Estado)
-                                    {
-                                        case Clinica.Domain.Entities.EstadoTurno.Reservado:
-                                            <span class="badge bg-warning text-dark">Reservado</span>;
-                                            break;
-                                        case Clinica.Domain.Entities.EstadoTurno.Confirmado:
-                                            <span class="badge bg-info text-dark">Confirmado</span>;
-                                            break;
-                                        case Clinica.Domain.Entities.EstadoTurno.Atendido:
-                                            <span class="badge bg-success">Atendido</span>;
-                                            break;
-                                        case Clinica.Domain.Entities.EstadoTurno.Cancelado:
-                                            <span class="badge bg-danger">Cancelado</span>;
-                                            break;
-                                        case Clinica.Domain.Entities.EstadoTurno.Ausente:
-                                            <span class="badge bg-dark">Ausente</span>;
-                                            break;
-                                        default:
-                                            <span class="badge bg-secondary">@t.Estado</span>;
-                                            break;
-                                    }
-                                }
-                            </td>
-                            <td>@t.MotivoConsulta</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
+<!-- Ocupación y estados del día -->
+@if (Model.TurnosHoyTotal > 0)
+{
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">Ocupación del día</h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="progress flex-grow-1" style="height: 12px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @porcentajeOcupacion%"
+                                 aria-valuenow="@porcentajeOcupacion" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <span class="ms-2 fw-bold">@porcentajeOcupacion%</span>
+                    </div>
+                    <small class="text-muted">@turnosAsignados asignados de @Model.TurnosHoyTotal turnos</small>
+                </div>
             </div>
-        }
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">Resumen del día</h6>
+                    <div class="row text-center">
+                        <div class="col">
+                            <span class="badge bg-secondary fs-6 mb-1">@Model.TurnosHoyLibres</span>
+                            <br /><small class="text-muted">Libres</small>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-warning text-dark fs-6 mb-1">@(turnosAsignados - Model.TurnosHoyAtendidos - Model.TurnosHoyCancelados - Model.TurnosHoyAusentes)</span>
+                            <br /><small class="text-muted">Pendientes</small>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-success fs-6 mb-1">@Model.TurnosHoyAtendidos</span>
+                            <br /><small class="text-muted">Atendidos</small>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-danger fs-6 mb-1">@Model.TurnosHoyCancelados</span>
+                            <br /><small class="text-muted">Cancelados</small>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-dark fs-6 mb-1">@Model.TurnosHoyAusentes</span>
+                            <br /><small class="text-muted">Ausentes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Próximos turnos + tabla del día -->
+<div class="row">
+    @if (Model.ProximosTurnos.Any())
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-clock me-1"></i> Próximos turnos
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var t in Model.ProximosTurnos)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@t.FechaHoraInicio.ToString("HH:mm")</strong>
+                                <span class="text-muted ms-1">@t.Paciente?.Apellido @t.Paciente?.Nombre</span>
+                            </div>
+                            <a asp-controller="Calendario" asp-action="CambiarEstado" asp-route-id="@t.TurnoId"
+                               class="btn btn-sm btn-outline-primary">Atender</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+    <div class="@(Model.ProximosTurnos.Any() ? "col-md-8" : "col-12") mb-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-calendar-day me-1"></i> Turnos de hoy — @Model.FechaHoy.ToString("dd/MM/yyyy")
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.TurnosHoy.Any())
+                {
+                    <p class="text-muted p-3 mb-0">No hay turnos registrados para hoy.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Paciente</th>
+                                    <th>Médico</th>
+                                    <th>Estado</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var t in Model.TurnosHoy)
+                            {
+                                <tr>
+                                    <td>@t.FechaHoraInicio.ToString("HH:mm")</td>
+                                    <td>@(t.Paciente != null ? $"{t.Paciente.Apellido} {t.Paciente.Nombre}" : "(Libre)")</td>
+                                    <td>@(t.Medico != null ? $"{t.Medico.Apellido} {t.Medico.Nombre}" : "-")</td>
+                                    <td>
+                                        @if (t.PacienteId == null)
+                                        {
+                                            <span class="badge bg-secondary">Libre</span>
+                                        }
+                                        else
+                                        {
+                                            @switch (t.Estado)
+                                            {
+                                                case Clinica.Domain.Entities.EstadoTurno.Disponible:
+                                                    <span class="badge bg-secondary">Disponible</span>;
+                                                    break;
+                                                case Clinica.Domain.Entities.EstadoTurno.Reservado:
+                                                    <span class="badge bg-warning text-dark">Reservado</span>;
+                                                    break;
+                                                case Clinica.Domain.Entities.EstadoTurno.Confirmado:
+                                                    <span class="badge bg-info text-dark">Confirmado</span>;
+                                                    break;
+                                                case Clinica.Domain.Entities.EstadoTurno.Atendido:
+                                                    <span class="badge bg-success">Atendido</span>;
+                                                    break;
+                                                case Clinica.Domain.Entities.EstadoTurno.Cancelado:
+                                                    <span class="badge bg-danger">Cancelado</span>;
+                                                    break;
+                                                case Clinica.Domain.Entities.EstadoTurno.Ausente:
+                                                    <span class="badge bg-dark">Ausente</span>;
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@t.Estado</span>;
+                                                    break;
+                                            }
+                                        }
+                                    </td>
+                                    <td>@t.MotivoConsulta</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>

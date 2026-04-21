@@ -16,13 +16,31 @@
             <input type="month" name="fecha" class="form-control" value="@Model.FechaSeleccionada.ToString("yyyy-MM")" />
         </div>
         <div class="col-auto">
-            <select name="medicoId" class="form-select" asp-items="ViewBag.MedicoId">
-                <option value="">Todos los médicos</option>
+            <select name="medicoId" class="form-select select2-medico" data-placeholder="Todos los médicos">
+                <option value=""></option>
+                @if (Model.MedicoId.HasValue)
+                {
+                    var medicoItems = ViewBag.MedicoId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                    var selected = medicoItems?.FirstOrDefault(i => i.Value == Model.MedicoId.Value.ToString());
+                    if (selected != null)
+                    {
+                        <option value="@selected.Value" selected>@selected.Text</option>
+                    }
+                }
             </select>
         </div>
         <div class="col-auto">
-            <select name="pacienteId" class="form-select" asp-items="ViewBag.PacienteId">
-                <option value="">Todos los pacientes</option>
+            <select name="pacienteId" class="form-select select2-paciente" data-placeholder="Todos los pacientes">
+                <option value=""></option>
+                @if (Model.PacienteId.HasValue)
+                {
+                    var pacienteItems = ViewBag.PacienteId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                    var selectedPac = pacienteItems?.FirstOrDefault(i => i.Value == Model.PacienteId.Value.ToString());
+                    if (selectedPac != null)
+                    {
+                        <option value="@selectedPac.Value" selected>@selectedPac.Text</option>
+                    }
+                }
             </select>
         </div>
         <div class="col-auto">
@@ -161,6 +179,7 @@ else
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{await Html.RenderPartialAsync("_Select2Scripts");}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const medicoSelect = document.querySelector('select[name="medicoId"]');
@@ -172,14 +191,18 @@ else
 
                     const url = new URL(this.href, window.location.origin);
 
-                    if (medicoSelect && medicoSelect.value) {
-                        url.searchParams.set('medicoId', medicoSelect.value);
+                    // Select2 usa jQuery val()
+                    var medVal = $(medicoSelect).val();
+                    var pacVal = $(pacienteSelect).val();
+
+                    if (medVal) {
+                        url.searchParams.set('medicoId', medVal);
                     } else {
                         url.searchParams.delete('medicoId');
                     }
 
-                    if (pacienteSelect && pacienteSelect.value) {
-                        url.searchParams.set('pacienteId', pacienteSelect.value);
+                    if (pacVal) {
+                        url.searchParams.set('pacienteId', pacVal);
                     } else {
                         url.searchParams.delete('pacienteId');
                     }

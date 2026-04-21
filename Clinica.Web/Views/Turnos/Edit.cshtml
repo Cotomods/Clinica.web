@@ -13,13 +13,36 @@
 
     <div class="mb-3">
         <label class="form-label">Médico</label>
-        <select asp-for="MedicoId" class="form-select" asp-items="ViewBag.MedicoId"></select>
+        <select asp-for="MedicoId" class="form-select select2-medico" data-placeholder="Seleccionar médico">
+            @{
+                var medicoItems = ViewBag.MedicoId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                if (medicoItems != null)
+                {
+                    var sel = medicoItems.FirstOrDefault(i => i.Selected);
+                    if (sel != null)
+                    {
+                        <option value="@sel.Value" selected>@sel.Text</option>
+                    }
+                }
+            }
+        </select>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Paciente</label>
-        <select asp-for="PacienteId" class="form-select" asp-items="ViewBag.PacienteId">
-            <option value="">(Sin paciente asignado)</option>
+        <select asp-for="PacienteId" class="form-select select2-paciente" data-placeholder="(Sin paciente asignado)">
+            <option value=""></option>
+            @{
+                var pacienteItems = ViewBag.PacienteId as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                if (pacienteItems != null)
+                {
+                    var selPac = pacienteItems.FirstOrDefault(i => i.Selected);
+                    if (selPac != null)
+                    {
+                        <option value="@selPac.Value" selected>@selPac.Text</option>
+                    }
+                }
+            }
         </select>
     </div>
 
@@ -51,4 +74,5 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{await Html.RenderPartialAsync("_Select2Scripts");}
 }
