@@ -39,8 +39,8 @@ jobs:
     - name: Restaurar dependencias
       run: dotnet restore Clinica.Web/Clinica.Web.csproj
 
-    - name: Compilar (Publish Framework-Dependent)
-      run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -o ./publish
+    - name: Compilar (Publish Self-Contained 32-bits)
+      run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -r win-x86 --self-contained true -o ./publish
 
     - name: Configurar web.config para diagnóstico en DonWeb
       run: |
