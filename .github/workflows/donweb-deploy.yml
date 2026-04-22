@@ -39,16 +39,16 @@ jobs:
     - name: Restaurar dependencias
       run: dotnet restore Clinica.Web/Clinica.Web.csproj
 
-    - name: Compilar (Publish)
-      run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -o ./publish
+    - name: Compilar (Publish Self-Contained)
+      run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -r win-x64 --self-contained true -o ./publish
 
     - name: Configurar web.config para diagnóstico en DonWeb
       run: |
         # Habilitar logs detallados
         sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./publish/web.config
-        # Cambiar el modelo de hosting a OutOfProcess (muy común en hosting compartido)
+        # Cambiar el modelo de hosting a OutOfProcess
         sed -i 's/hostingModel="inprocess"/hostingModel="OutOfProcess"/g' ./publish/web.config
-        # Crear la carpeta de logs para que el servidor pueda escribir el error
+        # Crear la carpeta de logs
         mkdir -p ./publish/logs
         touch ./publish/logs/empty.txt
 
