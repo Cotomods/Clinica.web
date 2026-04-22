@@ -21,7 +21,20 @@ jobs:
 
     - name: Inyectar Cadena de Conexión de Producción
       run: |
-        sed -i 's|REPLACE_WITH_PRODUCTION_CONNECTION_STRING|${{ secrets.PROD_DB_CONNECTION }}|g' Clinica.Web/appsettings.Production.json
+        cat << 'EOF' > Clinica.Web/appsettings.Production.json
+        {
+          "ConnectionStrings": {
+            "ClinicaDb": "${{ secrets.PROD_DB_CONNECTION }}"
+          },
+          "Logging": {
+            "LogLevel": {
+              "Default": "Warning",
+              "Microsoft.AspNetCore": "Warning"
+            }
+          },
+          "AllowedHosts": "*"
+        }
+        EOF
 
     - name: Restaurar dependencias
       run: dotnet restore Clinica.Web/Clinica.Web.csproj
