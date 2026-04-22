@@ -42,6 +42,16 @@ jobs:
     - name: Compilar (Publish)
       run: dotnet publish Clinica.Web/Clinica.Web.csproj -c Release -o ./publish
 
+    - name: Configurar web.config para diagnóstico en DonWeb
+      run: |
+        # Habilitar logs detallados
+        sed -i 's/stdoutLogEnabled="false"/stdoutLogEnabled="true"/g' ./publish/web.config
+        # Cambiar el modelo de hosting a OutOfProcess (muy común en hosting compartido)
+        sed -i 's/hostingModel="inprocess"/hostingModel="OutOfProcess"/g' ./publish/web.config
+        # Crear la carpeta de logs para que el servidor pueda escribir el error
+        mkdir -p ./publish/logs
+        touch ./publish/logs/empty.txt
+
     - name: Sincronizar vía FTP a DonWeb
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
