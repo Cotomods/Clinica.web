@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Web.Services;
 using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace Clinica.Web.Controllers;
 public class MedicosController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly IBitacoraService _bitacora;
 
-    public MedicosController(ClinicaDbContext context)
+    public MedicosController(ClinicaDbContext context, IBitacoraService bitacora)
     {
         _context = context;
+        _bitacora = bitacora;
     }
 
     // GET: /Medicos
@@ -57,6 +60,22 @@ public class MedicosController : Controller
     [Authorize(Roles = "Admin,RecursosHumanos")]
     public async Task<IActionResult> Create(MedicoCreateViewModel model)
     {
+        // Limpieza de datos
+        model.Nombre = model.Nombre?.Trim() ?? string.Empty;
+        model.Apellido = model.Apellido?.Trim() ?? string.Empty;
+        model.Matricula = model.Matricula?.Trim() ?? string.Empty;
+        model.EspecialidadNombre = model.EspecialidadNombre?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(model.Matricula))
+        {
+            var existeMatricula = await _context.Medicos.AnyAsync(m => m.Matricula == model.Matricula);
+            if (existeMatricula)
+            {
+                ModelState.AddModelError("Matricula", "Ya existe un médico registrado con esta matrícula.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -87,9 +106,18 @@ public class MedicosController : Controller
             medico.Especialidad = especialidad;
         }
 
-        _context.Medicos.Add(medico);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            _context.Medicos.Add(medico);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Creó un médico", $"MedicoId: {medico.MedicoId} - {medico.Apellido} {medico.Nombre}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar el médico. Por favor, intente nuevamente.");
+            return View(model);
+        }
     }
 
     // GET: /Medicos/Edit/5
@@ -126,6 +154,22 @@ public class MedicosController : Controller
         if (id != model.MedicoId)
         {
             return BadRequest();
+        }
+
+        // Limpieza de datos
+        model.Nombre = model.Nombre?.Trim() ?? string.Empty;
+        model.Apellido = model.Apellido?.Trim() ?? string.Empty;
+        model.Matricula = model.Matricula?.Trim() ?? string.Empty;
+        model.EspecialidadNombre = model.EspecialidadNombre?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(model.Matricula))
+        {
+            var existeMatricula = await _context.Medicos.AnyAsync(m => m.Matricula == model.Matricula && m.MedicoId != id);
+            if (existeMatricula)
+            {
+                ModelState.AddModelError("Matricula", "Ya existe otro médico registrado con esta matrícula.");
+            }
         }
 
         if (!ModelState.IsValid)
@@ -167,9 +211,18 @@ public class MedicosController : Controller
         medico.Matricula = model.Matricula;
         medico.Especialidad = especialidad;
 
-        _context.Update(medico);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            _context.Update(medico);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó un médico", $"MedicoId: {medico.MedicoId} - {medico.Apellido} {medico.Nombre}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar los cambios del médico.");
+            return View(model);
+        }
     }
 
     // GET: /Medicos/Delete/5
@@ -200,13 +253,20 @@ public class MedicosController : Controller
         {
             try
             {
+                var detalle = $"MedicoId: {medico.MedicoId} - {medico.Apellido} {medico.Nombre}";
                 _context.Medicos.Remove(medico);
                 await _context.SaveChangesAsync();
+                await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó un médico", detalle);
                 TempData["SuccessMessage"] = "Médico eliminado correctamente.";
             }
             catch (DbUpdateException)
             {
                 TempData["ErrorMessage"] = "No se puede eliminar el médico porque tiene turnos o pacientes asociados.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Ocurrió un error inesperado al eliminar el médico.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -242,6 +302,11 @@ public class MedicosController : Controller
         {
             await transaction.RollbackAsync();
             TempData["ErrorMessage"] = "No se pudieron eliminar los médicos seleccionados porque al menos uno tiene dependencias (ej. turnos asociados). Ningún registro fue eliminado.";
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar los médicos seleccionados.";
         }
 
         return RedirectToAction(nameof(Index));
@@ -372,11 +437,22 @@ public class MedicosController : Controller
             return View(model);
         }
 
-        _context.Turnos.AddRange(turnos);
-        await _context.SaveChangesAsync();
+        try 
+        {
+            _context.Turnos.AddRange(turnos);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Generó turnos", $"MedicoId: {medico.MedicoId} - {medico.Apellido} {medico.Nombre} - {turnos.Count} turno(s)");
 
-        // Redirigir al calendario de turnos luego de generar la agenda
-        return RedirectToAction("Index", "Calendario");
+            // Redirigir al calendario de turnos luego de generar la agenda
+            return RedirectToAction("Index", "Calendario");
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al intentar generar los turnos en la base de datos.");
+            model.MedicoNombre = $"{medico.Apellido} {medico.Nombre}";
+            model.HorariosPorDia = NormalizeHorariosPorDia(model.HorariosPorDia);
+            return View(model);
+        }
     }
 
     private static List<DiaAtencionHorarioViewModel> BuildDefaultHorariosPorDia()
@@ -434,6 +510,3 @@ public class MedicosController : Controller
         return result;
     }
 }
-
-
-

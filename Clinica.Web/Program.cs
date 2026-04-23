@@ -52,6 +52,9 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AuthorizeFilter(policy));
 });
 
+// Servicio de bitácora (auditoría)
+builder.Services.AddScoped<Clinica.Web.Services.IBitacoraService, Clinica.Web.Services.BitacoraService>();
+
 var app = builder.Build();
 
 // Inicializar base de datos (crear si no existe) + aplicar migraciones + seed de roles/usuario admin

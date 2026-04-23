@@ -1,0 +1,107 @@
+@model Clinica.Web.Models.PaginatedList<Clinica.Domain.Entities.Bitacora>
+
+@{
+    ViewData["Title"] = "Panel de Control";
+}
+
+<h1>Panel de Control</h1>
+<p class="text-muted">Registro de todas las acciones realizadas en el sistema.</p>
+
+<div class="row mb-3 mt-3">
+    <div class="col-md-6">
+    </div>
+    <div class="col-md-6">
+        <form asp-action="Index" method="get" class="d-flex" id="searchForm">
+            <input type="text" name="searchTerm" id="searchInput" value="@ViewData["CurrentFilter"]" class="form-control me-2" placeholder="Buscar por usuario, acción o detalle..." autocomplete="off" />
+            <button type="submit" class="btn btn-secondary me-2">Buscar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </form>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Detalle</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var b in Model)
+    {
+        <tr>
+            <td>@b.Fecha.ToString("dd/MM/yyyy HH:mm:ss")</td>
+            <td>@b.Usuario</td>
+            <td>@b.Accion</td>
+            <td>@b.Detalle</td>
+        </tr>
+    }
+    @if (!Model.Any())
+    {
+        <tr>
+            <td colspan="4" class="text-center text-muted py-4">No se encontraron registros en la bitácora.</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@if (Model.TotalPages > 1)
+{
+    var start = Math.Max(1, Model.PageIndex - 2);
+    var end = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+
+    <nav aria-label="Paginación bitácora">
+        <ul class="pagination">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" 
+                   asp-route-pageNumber="@(Model.PageIndex - 1)" 
+                   asp-route-searchTerm="@ViewData["CurrentFilter"]">Anterior</a>
+            </li>
+
+            @for (var i = start; i <= end; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index" 
+                       asp-route-pageNumber="@i" 
+                       asp-route-searchTerm="@ViewData["CurrentFilter"]">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" 
+                   asp-route-pageNumber="@(Model.PageIndex + 1)" 
+                   asp-route-searchTerm="@ViewData["CurrentFilter"]">Siguiente</a>
+            </li>
+
+            <li class="page-item disabled">
+                <span class="page-link">@Model.TotalCount registros</span>
+            </li>
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("searchInput");
+            const searchForm = document.getElementById("searchForm");
+            let timeout = null;
+
+            if (searchInput && searchForm) {
+                searchInput.addEventListener("input", function () {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function () {
+                        searchForm.submit();
+                    }, 500); // 500ms debounce
+                });
+
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.focus();
+                searchInput.value = val;
+            }
+        });
+    </script>
+}

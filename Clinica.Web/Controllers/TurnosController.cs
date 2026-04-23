@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Web.Services;
 using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace Clinica.Web.Controllers;
 public class TurnosController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly IBitacoraService _bitacora;
 
-    public TurnosController(ClinicaDbContext context)
+    public TurnosController(ClinicaDbContext context, IBitacoraService bitacora)
     {
         _context = context;
+        _bitacora = bitacora;
     }
 
     // GET: /Turnos
@@ -91,6 +94,9 @@ public class TurnosController : Controller
             return BadRequest();
         }
 
+        // Limpieza de datos
+        turno.MotivoConsulta = turno.MotivoConsulta?.Trim();
+
         // No permitir establecer/crear horarios de turno en el pasado.
         // Permitimos editar otros campos de un turno ya pasado, siempre que no se cambie su horario.
         var existing = await _context.Turnos
@@ -126,10 +132,20 @@ public class TurnosController : Controller
             return View(turno);
         }
 
-        _context.Entry(turno).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Entry(turno).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó un turno", $"TurnoId: {turno.TurnoId}");
 
-        return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar los cambios del turno en la base de datos.");
+            await LoadCombosAsync(turno.MedicoId, turno.PacienteId);
+            return View(turno);
+        }
     }
 
     // GET: /Turnos/Delete/5
@@ -162,8 +178,21 @@ public class TurnosController : Controller
             return NotFound();
         }
 
-        _context.Turnos.Remove(turno);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Turnos.Remove(turno);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó un turno", $"TurnoId: {id}");
+            TempData["SuccessMessage"] = "Turno eliminado correctamente.";
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] = "No se puede eliminar este turno debido a registros asociados en la base de datos.";
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar el turno.";
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -174,5 +203,3 @@ public class TurnosController : Controller
         ViewBag.PacienteId = new SelectList(await _context.Pacientes.AsNoTracking().ToListAsync(), "PacienteId", "Apellido", pacienteId);
     }
 }
-
-

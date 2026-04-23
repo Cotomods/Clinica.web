@@ -1,5 +1,6 @@
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Web.Services;
 using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,17 +16,18 @@ public class UsersController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ClinicaDbContext _clinicaContext;
-    
+    private readonly IBitacoraService _bitacora;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ClinicaDbContext clinicaContext)
+        ClinicaDbContext clinicaContext,
+        IBitacoraService bitacora)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _clinicaContext = clinicaContext;
-        
+        _bitacora = bitacora;
     }
 
     // GET: /Users
@@ -114,6 +116,9 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(UserCreateViewModel model)
     {
+        // Limpieza de datos
+        model.Email = model.Email?.Trim() ?? string.Empty;
+
         if (!ModelState.IsValid)
         {
             await LoadRolesAndMedicosAsync();
@@ -127,60 +132,70 @@ public class UsersController : Controller
             MedicoId = model.MedicoId
         };
 
-        var result = await _userManager.CreateAsync(user, model.Password);
-        if (!result.Succeeded)
+        try
         {
-            foreach (var error in result.Errors)
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
             {
-                // Mostrar el error debajo del campo correspondiente cuando sea posible
-                if (error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase))
+                foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError(nameof(model.Password), error.Description);
+                    // Mostrar el error debajo del campo correspondiente cuando sea posible
+                    if (error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(nameof(model.Password), error.Description);
+                    }
+                    else if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(nameof(model.Email), "Ya existe un usuario con este correo electrónico.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
-                else if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
-                         || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
-                {
-                    ModelState.AddModelError(nameof(model.Email), error.Description);
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+
+                await LoadRolesAndMedicosAsync();
+                return View(model);
             }
 
-            await LoadRolesAndMedicosAsync();
-            return View(model);
-        }
-
-        // Asignar rol seleccionado (solo uno por usuario)
-        if (model.SelectedRoles != null && model.SelectedRoles.Any())
-        {
-            var selectedRole = model.SelectedRoles.FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(selectedRole))
+            // Asignar rol seleccionado (solo uno por usuario)
+            if (model.SelectedRoles != null && model.SelectedRoles.Any())
             {
-                // Si NO es Admin, no puede asignar rol Admin
-                if (!User.IsInRole("Admin") && selectedRole == "Admin")
-                {
-                    selectedRole = null;
-                }
+                var selectedRole = model.SelectedRoles.FirstOrDefault();
 
                 if (!string.IsNullOrWhiteSpace(selectedRole))
                 {
-                    var validRole = await _roleManager.Roles
-                        .Where(r => r.Name == selectedRole)
-                        .Select(r => r.Name!)
-                        .FirstOrDefaultAsync();
-
-                    if (!string.IsNullOrEmpty(validRole))
+                    // Si NO es Admin, no puede asignar rol Admin
+                    if (!User.IsInRole("Admin") && selectedRole == "Admin")
                     {
-                        await _userManager.AddToRoleAsync(user, validRole);
+                        selectedRole = null;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(selectedRole))
+                    {
+                        var validRole = await _roleManager.Roles
+                            .Where(r => r.Name == selectedRole)
+                            .Select(r => r.Name!)
+                            .FirstOrDefaultAsync();
+
+                        if (!string.IsNullOrEmpty(validRole))
+                        {
+                            await _userManager.AddToRoleAsync(user, validRole);
+                        }
                     }
                 }
             }
-        }
 
-        return RedirectToAction(nameof(Index));
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Creó un usuario", $"Email: {model.Email}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al intentar crear el usuario. Por favor, intente nuevamente.");
+            await LoadRolesAndMedicosAsync();
+            return View(model);
+        }
     }
 
     // GET: /Users/Edit/5
@@ -222,6 +237,9 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UserEditViewModel model)
     {
+        // Limpieza de datos
+        model.Email = model.Email?.Trim() ?? string.Empty;
+
         if (!ModelState.IsValid)
         {
             await LoadRolesAndMedicosAsync(model.MedicoId, model.SelectedRoles);
@@ -244,69 +262,79 @@ public class UsersController : Controller
         user.UserName = model.Email;
         user.MedicoId = model.MedicoId;
 
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
+        try
         {
-            foreach (var error in result.Errors)
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
             {
-                if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
+                foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError(nameof(model.Email), error.Description);
+                    if (string.Equals(error.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(error.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(nameof(model.Email), "Ya existe otro usuario con este correo electrónico.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
-                else
+
+                await LoadRolesAndMedicosAsync(model.MedicoId, model.SelectedRoles);
+                return View(model);
+            }
+
+            // Actualizar rol (solo uno por usuario)
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var selectedRoles = model.SelectedRoles ?? new List<string>();
+
+            // Tomar solo un rol seleccionado (si hay varios por algún motivo)
+            string? selectedRole = selectedRoles.FirstOrDefault();
+
+            // Si NO es Admin, no puede tocar el rol Admin
+            if (!User.IsInRole("Admin"))
+            {
+                if (selectedRole == "Admin")
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    selectedRole = null;
+                }
+
+                // Tampoco puede quitar Admin si el usuario ya lo tiene
+                if (currentRoles.Contains("Admin"))
+                {
+                    // Forzamos a que Admin siga estando entre los roles actuales
+                    selectedRole = "Admin";
                 }
             }
 
+            var newRoles = new List<string>();
+            if (!string.IsNullOrWhiteSpace(selectedRole))
+            {
+                newRoles.Add(selectedRole);
+            }
+
+            var rolesToAdd = newRoles.Except(currentRoles).ToList();
+            var rolesToRemove = currentRoles.Except(newRoles).ToList();
+
+            if (rolesToAdd.Any())
+            {
+                await _userManager.AddToRolesAsync(user, rolesToAdd);
+            }
+
+            if (rolesToRemove.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+            }
+
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó un usuario", $"Email: {model.Email}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al actualizar el usuario. Por favor, intente nuevamente.");
             await LoadRolesAndMedicosAsync(model.MedicoId, model.SelectedRoles);
             return View(model);
         }
-
-        // Actualizar rol (solo uno por usuario)
-        var currentRoles = await _userManager.GetRolesAsync(user);
-        var selectedRoles = model.SelectedRoles ?? new List<string>();
-
-        // Tomar solo un rol seleccionado (si hay varios por algún motivo)
-        string? selectedRole = selectedRoles.FirstOrDefault();
-
-        // Si NO es Admin, no puede tocar el rol Admin
-        if (!User.IsInRole("Admin"))
-        {
-            if (selectedRole == "Admin")
-            {
-                selectedRole = null;
-            }
-
-            // Tampoco puede quitar Admin si el usuario ya lo tiene
-            if (currentRoles.Contains("Admin"))
-            {
-                // Forzamos a que Admin siga estando entre los roles actuales
-                selectedRole = "Admin";
-            }
-        }
-
-        var newRoles = new List<string>();
-        if (!string.IsNullOrWhiteSpace(selectedRole))
-        {
-            newRoles.Add(selectedRole);
-        }
-
-        var rolesToAdd = newRoles.Except(currentRoles).ToList();
-        var rolesToRemove = currentRoles.Except(newRoles).ToList();
-
-        if (rolesToAdd.Any())
-        {
-            await _userManager.AddToRolesAsync(user, rolesToAdd);
-        }
-
-        if (rolesToRemove.Any())
-        {
-            await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
-        }
-
-        return RedirectToAction(nameof(Index));
     }
 
     // GET: /Users/Delete/5
@@ -359,25 +387,36 @@ public class UsersController : Controller
             return Forbid();
         }
 
-        var result = await _userManager.DeleteAsync(user);
-        if (!result.Succeeded)
+        var emailEliminado = user.Email;
+
+        try
         {
-            foreach (var error in result.Errors)
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                var vm = new UserListViewModel
+                {
+                    Id = user.Id,
+                    Email = user.Email ?? string.Empty,
+                    MedicoId = user.MedicoId,
+                    Roles = roles.ToList()
+                };
+                return View(vm);
             }
 
-            var vm = new UserListViewModel
-            {
-                Id = user.Id,
-                Email = user.Email ?? string.Empty,
-                MedicoId = user.MedicoId,
-                Roles = roles.ToList()
-            };
-            return View(vm);
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó un usuario", $"Email: {emailEliminado}");
+            return RedirectToAction(nameof(Index));
         }
-
-        return RedirectToAction(nameof(Index));
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar el usuario.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     private async Task LoadRolesAndMedicosAsync(int? selectedMedicoId = null, IList<string>? selectedRoles = null)
@@ -410,6 +449,3 @@ public class UsersController : Controller
         ViewBag.MedicoId = new SelectList(medicos, "MedicoId", "Nombre", selectedMedicoId);
     }
 }
-
-
-

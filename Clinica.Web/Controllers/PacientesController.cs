@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Web.Services;
 using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,11 +15,13 @@ public class PacientesController : Controller
 {
     private readonly ClinicaDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IBitacoraService _bitacora;
 
-    public PacientesController(ClinicaDbContext context, UserManager<ApplicationUser> userManager)
+    public PacientesController(ClinicaDbContext context, UserManager<ApplicationUser> userManager, IBitacoraService bitacora)
     {
         _context = context;
         _userManager = userManager;
+        _bitacora = bitacora;
     }
 
     // GET: /Pacientes
@@ -85,17 +88,54 @@ public class PacientesController : Controller
     [Authorize(Roles = "Admin,Recepcionista")]
     public async Task<IActionResult> Create(Paciente paciente)
     {
+        // Limpieza de datos
+        paciente.Nombre = paciente.Nombre?.Trim() ?? string.Empty;
+        paciente.Apellido = paciente.Apellido?.Trim() ?? string.Empty;
+        paciente.NumeroDocumento = paciente.NumeroDocumento?.Trim();
+        paciente.Email = paciente.Email?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(paciente.NumeroDocumento))
+        {
+            var existeDni = await _context.Pacientes.AnyAsync(p => p.NumeroDocumento == paciente.NumeroDocumento);
+            if (existeDni)
+            {
+                ModelState.AddModelError("NumeroDocumento", "Ya existe un paciente registrado con este número de documento.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(paciente.Email))
+        {
+            var existeEmail = await _context.Pacientes.AnyAsync(p => p.Email == paciente.Email);
+            if (existeEmail)
+            {
+                ModelState.AddModelError("Email", "Ya existe un paciente registrado con este correo electrónico.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
                 await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(),
-                "ObraSocialId", "Nombre");
+                "ObraSocialId", "Nombre", paciente.ObraSocialId);
             return View(paciente);
         }
 
-        _context.Pacientes.Add(paciente);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            _context.Pacientes.Add(paciente);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Creó un paciente", $"PacienteId: {paciente.PacienteId} - {paciente.Apellido} {paciente.Nombre}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al intentar guardar el paciente. Por favor, intente nuevamente.");
+            ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(),
+                "ObraSocialId", "Nombre", paciente.ObraSocialId);
+            return View(paciente);
+        }
     }
 
     // GET: /Pacientes/Edit/5
@@ -125,6 +165,31 @@ public class PacientesController : Controller
             return BadRequest();
         }
 
+        // Limpieza de datos
+        paciente.Nombre = paciente.Nombre?.Trim() ?? string.Empty;
+        paciente.Apellido = paciente.Apellido?.Trim() ?? string.Empty;
+        paciente.NumeroDocumento = paciente.NumeroDocumento?.Trim();
+        paciente.Email = paciente.Email?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(paciente.NumeroDocumento))
+        {
+            var existeDni = await _context.Pacientes.AnyAsync(p => p.NumeroDocumento == paciente.NumeroDocumento && p.PacienteId != id);
+            if (existeDni)
+            {
+                ModelState.AddModelError("NumeroDocumento", "Ya existe otro paciente registrado con este número de documento.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(paciente.Email))
+        {
+            var existeEmail = await _context.Pacientes.AnyAsync(p => p.Email == paciente.Email && p.PacienteId != id);
+            if (existeEmail)
+            {
+                ModelState.AddModelError("Email", "Ya existe otro paciente registrado con este correo electrónico.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
@@ -133,10 +198,22 @@ public class PacientesController : Controller
             return View(paciente);
         }
 
-        _context.Entry(paciente).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Entry(paciente).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó un paciente", $"PacienteId: {paciente.PacienteId} - {paciente.Apellido} {paciente.Nombre}");
 
-        return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar los cambios. Por favor, intente nuevamente.");
+            ViewData["ObraSocialId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _context.ObrasSociales.OrderBy(o => o.Nombre).ToListAsync(),
+                "ObraSocialId", "Nombre", paciente.ObraSocialId);
+            return View(paciente);
+        }
     }
 
     // GET: /Pacientes/Delete/5
@@ -169,13 +246,20 @@ public class PacientesController : Controller
 
         try
         {
+            var detalle = $"PacienteId: {paciente.PacienteId} - {paciente.Apellido} {paciente.Nombre}";
             _context.Pacientes.Remove(paciente);
             await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó un paciente", detalle);
             TempData["SuccessMessage"] = "Paciente eliminado correctamente.";
         }
         catch (DbUpdateException)
         {
             TempData["ErrorMessage"] = "No se puede eliminar el paciente porque tiene información relacionada (turnos o consultas).";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar el paciente.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -210,6 +294,11 @@ public class PacientesController : Controller
         {
             await transaction.RollbackAsync();
             TempData["ErrorMessage"] = "No se pudieron eliminar los pacientes seleccionados porque al menos uno tiene dependencias (ej. turnos asociados). Ningún registro fue eliminado.";
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar los pacientes.";
         }
 
         return RedirectToAction(nameof(Index));
@@ -359,5 +448,3 @@ public class PacientesController : Controller
         return File(pdfBytes, "application/pdf", fileName);
     }
 }
-
-

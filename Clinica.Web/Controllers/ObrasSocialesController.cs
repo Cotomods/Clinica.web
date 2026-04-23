@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Data;
 using Clinica.Web.Models;
+using Clinica.Web.Services;
 using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace Clinica.Web.Controllers;
 public class ObrasSocialesController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly IBitacoraService _bitacora;
 
-    public ObrasSocialesController(ClinicaDbContext context)
+    public ObrasSocialesController(ClinicaDbContext context, IBitacoraService bitacora)
     {
         _context = context;
+        _bitacora = bitacora;
     }
 
     // GET: /ObrasSociales
@@ -39,11 +42,42 @@ public class ObrasSocialesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ObraSocial obraSocial)
     {
+        // Limpieza de datos
+        obraSocial.Nombre = obraSocial.Nombre?.Trim() ?? string.Empty;
+        obraSocial.Codigo = obraSocial.Codigo?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(obraSocial.Nombre))
+        {
+            var existeNombre = await _context.ObrasSociales.AnyAsync(o => o.Nombre == obraSocial.Nombre);
+            if (existeNombre)
+            {
+                ModelState.AddModelError("Nombre", "Ya existe una obra social con este nombre.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(obraSocial.Codigo))
+        {
+            var existeCodigo = await _context.ObrasSociales.AnyAsync(o => o.Codigo == obraSocial.Codigo);
+            if (existeCodigo)
+            {
+                ModelState.AddModelError("Codigo", "Ya existe una obra social con este código.");
+            }
+        }
+
         if (ModelState.IsValid)
         {
-            _context.ObrasSociales.Add(obraSocial);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.ObrasSociales.Add(obraSocial);
+                await _context.SaveChangesAsync();
+                await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Creó una obra social", $"ObraSocialId: {obraSocial.ObraSocialId} - {obraSocial.Nombre}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar la obra social en la base de datos.");
+            }
         }
         return View(obraSocial);
     }
@@ -69,11 +103,42 @@ public class ObrasSocialesController : Controller
             return BadRequest();
         }
 
+        // Limpieza de datos
+        obraSocial.Nombre = obraSocial.Nombre?.Trim() ?? string.Empty;
+        obraSocial.Codigo = obraSocial.Codigo?.Trim();
+
+        // Control de duplicados
+        if (!string.IsNullOrWhiteSpace(obraSocial.Nombre))
+        {
+            var existeNombre = await _context.ObrasSociales.AnyAsync(o => o.Nombre == obraSocial.Nombre && o.ObraSocialId != id);
+            if (existeNombre)
+            {
+                ModelState.AddModelError("Nombre", "Ya existe otra obra social con este nombre.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(obraSocial.Codigo))
+        {
+            var existeCodigo = await _context.ObrasSociales.AnyAsync(o => o.Codigo == obraSocial.Codigo && o.ObraSocialId != id);
+            if (existeCodigo)
+            {
+                ModelState.AddModelError("Codigo", "Ya existe otra obra social con este código.");
+            }
+        }
+
         if (ModelState.IsValid)
         {
-            _context.Update(obraSocial);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.Update(obraSocial);
+                await _context.SaveChangesAsync();
+                await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó una obra social", $"ObraSocialId: {obraSocial.ObraSocialId} - {obraSocial.Nombre}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar los cambios en la base de datos.");
+            }
         }
         return View(obraSocial);
     }
@@ -108,13 +173,19 @@ public class ObrasSocialesController : Controller
 
         try 
         {
+            var detalle = $"ObraSocialId: {obraSocial.ObraSocialId} - {obraSocial.Nombre}";
             _context.ObrasSociales.Remove(obraSocial);
             await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó una obra social", detalle);
             TempData["SuccessMessage"] = "Obra social eliminada correctamente.";
         }
         catch (DbUpdateException)
         {
             TempData["ErrorMessage"] = "No se puede eliminar la obra social porque tiene pacientes asociados.";
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar la obra social.";
         }
         
         return RedirectToAction(nameof(Index));
@@ -149,8 +220,12 @@ public class ObrasSocialesController : Controller
             await transaction.RollbackAsync();
             TempData["ErrorMessage"] = "No se pudieron eliminar las obras sociales seleccionadas porque al menos una tiene dependencias (ej. pacientes asociados). Ningún registro fue eliminado.";
         }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al intentar eliminar las obras sociales.";
+        }
 
         return RedirectToAction(nameof(Index));
     }
 }
-

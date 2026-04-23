@@ -20,6 +20,7 @@ public class ClinicaDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ConsultaMedica> ConsultasMedicas => Set<ConsultaMedica>();
     public DbSet<Diagnostico> Diagnosticos => Set<Diagnostico>();
     public DbSet<Receta> Recetas => Set<Receta>();
+    public DbSet<Bitacora> Bitacoras => Set<Bitacora>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

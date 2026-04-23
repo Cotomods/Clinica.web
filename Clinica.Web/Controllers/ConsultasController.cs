@@ -5,6 +5,7 @@ using Clinica.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Web.Services;
 
 namespace Clinica.Web.Controllers;
 
@@ -12,10 +13,12 @@ namespace Clinica.Web.Controllers;
 public class ConsultasController : Controller
 {
     private readonly ClinicaDbContext _context;
+    private readonly IBitacoraService _bitacora;
 
-    public ConsultasController(ClinicaDbContext context)
+    public ConsultasController(ClinicaDbContext context, IBitacoraService bitacora)
     {
         _context = context;
+        _bitacora = bitacora;
     }
 
     // GET: /Consultas/Edit/5
@@ -58,6 +61,13 @@ public class ConsultasController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ConsultaMedicaEditViewModel model)
     {
+        // Limpieza de datos
+        model.MotivoConsulta = model.MotivoConsulta?.Trim();
+        model.Anamnesis = model.Anamnesis?.Trim();
+        model.ExamenFisico = model.ExamenFisico?.Trim();
+        model.Indicaciones = model.Indicaciones?.Trim();
+        model.NotasInternas = model.NotasInternas?.Trim();
+
         var existing = await _context.ConsultasMedicas
             .FirstOrDefaultAsync(c => c.ConsultaMedicaId == model.ConsultaMedicaId);
 
@@ -89,17 +99,41 @@ public class ConsultasController : Controller
             return View(model);
         }
 
-        // Copiamos manualmente solo los campos editables; preservamos FechaConsulta y relaciones
-        existing.MotivoConsulta = model.MotivoConsulta;
-        existing.Anamnesis = model.Anamnesis;
-        existing.ExamenFisico = model.ExamenFisico;
-        existing.Indicaciones = model.Indicaciones;
-        existing.NotasInternas = model.NotasInternas;
+        try
+        {
+            // Copiamos manualmente solo los campos editables; preservamos FechaConsulta y relaciones
+            existing.MotivoConsulta = model.MotivoConsulta;
+            existing.Anamnesis = model.Anamnesis;
+            existing.ExamenFisico = model.ExamenFisico;
+            existing.Indicaciones = model.Indicaciones;
+            existing.NotasInternas = model.NotasInternas;
 
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó consulta médica", $"ConsultaId: {existing.ConsultaMedicaId} del paciente {model.PacienteNombre}");
 
-        var pacienteId = existing.PacienteId;
-        return RedirectToAction("HistoriaClinica", "Pacientes", new { id = pacienteId });
+            var pacienteId = existing.PacienteId;
+            return RedirectToAction("HistoriaClinica", "Pacientes", new { id = pacienteId });
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al guardar los cambios en la consulta.");
+            var consulta = await _context.ConsultasMedicas
+                .Include(c => c.Paciente)
+                .Include(c => c.Medico)
+                .Include(c => c.Diagnosticos)
+                .Include(c => c.Recetas)
+                .FirstOrDefaultAsync(c => c.ConsultaMedicaId == model.ConsultaMedicaId);
+
+            if (consulta != null)
+            {
+                model.PacienteNombre = $"{consulta.Paciente.Apellido} {consulta.Paciente.Nombre}";
+                model.MedicoNombre = $"{consulta.Medico.Apellido} {consulta.Medico.Nombre}";
+                model.FechaConsulta = consulta.FechaConsulta;
+                model.Diagnosticos = consulta.Diagnosticos.OrderBy(d => d.DiagnosticoId).ToList();
+                model.Recetas = consulta.Recetas.OrderBy(r => r.RecetaId).ToList();
+            }
+            return View(model);
+        }
     }
 
     [HttpPost]
@@ -116,15 +150,23 @@ public class ConsultasController : Controller
 
         if (!string.IsNullOrWhiteSpace(model.NuevoDiagnosticoDescripcion))
         {
-            var diag = new Diagnostico
+            try
             {
-                ConsultaMedicaId = consulta.ConsultaMedicaId,
-                Codigo = string.IsNullOrWhiteSpace(model.NuevoDiagnosticoCodigo) ? null : model.NuevoDiagnosticoCodigo,
-                Descripcion = model.NuevoDiagnosticoDescripcion!
-            };
+                var diag = new Diagnostico
+                {
+                    ConsultaMedicaId = consulta.ConsultaMedicaId,
+                    Codigo = string.IsNullOrWhiteSpace(model.NuevoDiagnosticoCodigo) ? null : model.NuevoDiagnosticoCodigo.Trim(),
+                    Descripcion = model.NuevoDiagnosticoDescripcion.Trim()
+                };
 
-            _context.Diagnosticos.Add(diag);
-            await _context.SaveChangesAsync();
+                _context.Diagnosticos.Add(diag);
+                await _context.SaveChangesAsync();
+                await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Agregó diagnóstico", $"Diagnóstico '{diag.Descripcion}' a ConsultaId: {consulta.ConsultaMedicaId}");
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Ocurrió un error al intentar agregar el diagnóstico.";
+            }
         }
 
         return RedirectToAction(nameof(Edit), new { id = consulta.ConsultaMedicaId });
@@ -141,8 +183,18 @@ public class ConsultasController : Controller
         }
 
         var consultaId = diag.ConsultaMedicaId;
-        _context.Diagnosticos.Remove(diag);
-        await _context.SaveChangesAsync();
+        
+        try
+        {
+            var descripcion = diag.Descripcion;
+            _context.Diagnosticos.Remove(diag);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó diagnóstico", $"Diagnóstico '{descripcion}' de ConsultaId: {consultaId}");
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error al intentar eliminar el diagnóstico.";
+        }
 
         return RedirectToAction(nameof(Edit), new { id = consultaId });
     }
@@ -161,17 +213,25 @@ public class ConsultasController : Controller
 
         if (!string.IsNullOrWhiteSpace(model.NuevaRecetaMedicamento))
         {
-            var receta = new Receta
+            try
             {
-                ConsultaMedicaId = consulta.ConsultaMedicaId,
-                Medicamento = model.NuevaRecetaMedicamento!,
-                Dosis = model.NuevaRecetaDosis,
-                Frecuencia = model.NuevaRecetaFrecuencia,
-                Duracion = model.NuevaRecetaDuracion
-            };
+                var receta = new Receta
+                {
+                    ConsultaMedicaId = consulta.ConsultaMedicaId,
+                    Medicamento = model.NuevaRecetaMedicamento.Trim(),
+                    Dosis = model.NuevaRecetaDosis?.Trim(),
+                    Frecuencia = model.NuevaRecetaFrecuencia?.Trim(),
+                    Duracion = model.NuevaRecetaDuracion?.Trim()
+                };
 
-            _context.Recetas.Add(receta);
-            await _context.SaveChangesAsync();
+                _context.Recetas.Add(receta);
+                await _context.SaveChangesAsync();
+                await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Agregó receta", $"Medicamento '{receta.Medicamento}' a ConsultaId: {consulta.ConsultaMedicaId}");
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Ocurrió un error al intentar agregar la receta.";
+            }
         }
 
         return RedirectToAction(nameof(Edit), new { id = consulta.ConsultaMedicaId });
@@ -188,10 +248,19 @@ public class ConsultasController : Controller
         }
 
         var consultaId = receta.ConsultaMedicaId;
-        _context.Recetas.Remove(receta);
-        await _context.SaveChangesAsync();
+        
+        try
+        {
+            var medicamento = receta.Medicamento;
+            _context.Recetas.Remove(receta);
+            await _context.SaveChangesAsync();
+            await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Eliminó receta", $"Medicamento '{medicamento}' de ConsultaId: {consultaId}");
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Ocurrió un error al intentar eliminar la receta.";
+        }
 
         return RedirectToAction(nameof(Edit), new { id = consultaId });
     }
 }
-
