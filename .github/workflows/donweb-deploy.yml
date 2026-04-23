@@ -52,6 +52,12 @@ jobs:
         mkdir -p ./publish/logs
         touch ./publish/logs/empty.txt
 
+    - name: Detener aplicación (app_offline.htm)
+      run: |
+        echo "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Actualizando</title></head><body><h1 style=\"text-align:center;margin-top:20%;font-family:sans-serif;\">Actualizando el sistema...</h1><p style=\"text-align:center;font-family:sans-serif;\">Por favor, regrese en unos minutos.</p></body></html>" > app_offline.htm
+        curl -T app_offline.htm ftp://${{ secrets.FTP_SERVER }}/public_html/app_offline.htm --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}"
+        sleep 10
+
     - name: Sincronizar vía FTP a DonWeb
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -60,3 +66,8 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish/
         server-dir: /public_html/
+
+    - name: Reiniciar aplicación (Eliminar app_offline.htm)
+      if: always()
+      run: |
+        curl -Q "-DELE /public_html/app_offline.htm" ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}"
