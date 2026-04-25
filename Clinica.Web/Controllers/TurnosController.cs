@@ -126,6 +126,11 @@ public class TurnosController : Controller
             }
         }
 
+        ModelState.Remove(nameof(Turno.Medico));
+        ModelState.Remove(nameof(Turno.Paciente));
+        ModelState.Remove(nameof(Turno.Consultorio));
+        ModelState.Remove(nameof(Turno.ConsultaMedica));
+
         if (!ModelState.IsValid)
         {
             await LoadCombosAsync(turno.MedicoId, turno.PacienteId);
@@ -134,6 +139,9 @@ public class TurnosController : Controller
 
         try
         {
+            turno.ConsultorioId = existing.ConsultorioId;
+            turno.ConsultaMedicaId = existing.ConsultaMedicaId;
+
             _context.Entry(turno).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             await _bitacora.RegistrarAccionAsync(User.Identity?.Name ?? "Sistema", "Editó un turno", $"TurnoId: {turno.TurnoId}");
